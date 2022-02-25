@@ -26,8 +26,8 @@
 #include <malloc.h>
 #include <sys/types.h>
 #include <unistd.h>
-
-
+#include <mqueue.h>
+#include <time.h>
 
 
  static struct option longopts[] =
@@ -45,6 +45,7 @@
 char *filename;
 
 void message_ipc_sendfile(char* filename);
+void msg_queue_ipc_sendfile(char* filename);
 long int file_size_handler(char* file_name);
 int main(int argc, char **argv){
 
@@ -88,10 +89,9 @@ int main(int argc, char **argv){
 								exit(EXIT_FAILURE);
 							}
 
-
 							filename = optarg;
 							printf("File name: \"%s\"\n",filename);
-
+							msg_queue_ipc_sendfile(filename);
 							break;
 			case 'm':
 				protocol = MESSAGE;
@@ -212,6 +212,123 @@ void message_ipc_sendfile(char* filename){
 				free(buffer);
 
 				close(fd);
+
+
+}
+
+void msg_queue_ipc_sendfile(char* filename){
+	mqd_t msg_queue;
+	long int file_size = file_size_handler(filename);
+	long int sent = 0;
+	int ret, i;
+	struct mq_attr attrs;
+	// remove old queue
+	file_header_t hdr; //msg header will specify how many bytes of data will follow
+	char incoming_message[10]; //space for server's reply
+	int status; //status return value
+	iov_t siov[2]; //create a 2 part iov
+
+	mq_unlink("/my_queue");
+
+	int fd;
+	msg_queue = mq_open("/my_queue", O_CREAT | O_EXCL | O_WRONLY, 0660, NULL);
+		 if (msg_queue == -1) {
+		     perror ("mq_open()");
+		     exit(EXIT_FAILURE);
+		  }
+
+	 printf ("Successfully opened my_queue:\n");
+
+	 fd = open(filename, O_RDONLY| O_LARGEFILE, S_IRUSR | S_IWUSR );
+
+	 hdr.msg_type = FILE_IOV_MSG_TYPE;
+	 hdr.data_size = file_size;
+
+
+
+	 if(fd==-1)
+	 	{
+	 		perror("open");
+	 		exit(EXIT_FAILURE);
+
+	 	}
+
+	 char *buf = malloc(file_size);
+	 read(fd, buf, file_size);
+
+	 SETIOV (&siov[0], &hdr, sizeof hdr);
+	 	SETIOV (&siov[1], buf, hdr.data_size);
+
+	 mq_send(msg_queue, siov, file_size, MQ_PRIO_MAX - 1);
+
+//	 while (sent < file_size)
+//	 	 	{
+//	 	 		if (buf != NULL)
+//	 	 		{
+//	 	 			long int read_size = read(fd, buf, MQ_MSGSIZE);
+//	 	 			int error_check = mq_send(msg_queue, buf, read_size, MQ_PRIO_MAX - 1);
+//	 	 			if (error_check == -1)
+//	 	 			{
+//	 	 				perror("mq_send");
+//	 	 				free(buf);
+//	 	 				exit(EXIT_FAILURE);
+//	 	 			}
+//	 	 			sent += read_size;
+//	 	 		}
+//	 	 		else
+//	 	 		{
+//	 	 			perror("malloc");
+//	 	 			free(buf);
+//	 	 			exit(EXIT_FAILURE);
+//	 	 		}
+//	 	 	}
+	 	 	free(buf);
+
+	 	 	//if (file_size == sent)
+	 	 		{
+	 	 			printf("File is sent to the queue.\n");
+	 	 			printf("Waiting for client to pick up...\n");
+	 	 			int check_empty = -1;
+
+	 	 			// check if the queue is empty
+	 	 			while (check_empty != 0)
+	 	 			{
+	 	 				mq_getattr(msg_queue, &attrs);
+	 	 				check_empty = attrs.mq_curmsgs;
+	 	 			}
+	 	 			printf("Client picked it up | File size = %ld byte(s).\n", file_size);
+	 	 		//}
+//	 	 		else
+//	 	 		{
+//	 	 			printf("Connection lost. Interrupted transfer.");
+//	 	 			mq_close(msg_queue);
+//	 	 			mq_unlink("/my_queue");
+//	 	 			close(fd);
+//	 	 			exit(EXIT_FAILURE);
+//	 	 		}
+	 	 		mq_close(msg_queue);
+	 	 		close(fd);
+
+	 	   if (ret == -1) {
+	 	      perror ("mq_close()");
+	 	      exit(EXIT_FAILURE);
+	 	   }
+
+
+
+	/* Open a message queue. We'll restrict the number of messages so that the
+	     queue fills up quickly. */
+
+	//memset(&attrs, 0, sizeof attrs);
+	//attrs.mq_maxmsg = MAX_MSGS;
+	//attrs.mq_msgsize = MAX_MSG_SIZE;
+	//msg_queue = mq_open("/my_queue", O_RDWR | O_CREAT, S_IRWXU | S_IRWXG, &attrs);
+	 //if (msg_queue == -1) {
+	   //  perror ("mq_open()");
+	    //
+	  //}
+	 	 		}
+	 	  exit(EXIT_FAILURE);
 
 
 }

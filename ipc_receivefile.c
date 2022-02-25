@@ -27,6 +27,16 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <sys/netmgr.h>     // #define for ND_LOCAL_NODE is in here
+#include "iov_server.h"
+#include <sys/iofunc.h>
+#include <sys/dispatch.h>
+#include <sys/stat.h>
+#include <malloc.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <mqueue.h>
+#include <time.h>
 
 #include "iov_server.h"
 
@@ -57,7 +67,10 @@ msg_buf_t filemsg;
 int file;
 
 
-void messages_ipc_receive(char* filename);
+void messages_ipc_receive(char* file_name);
+void msg_queue_ipc_receive(char* file_name);
+
+
 void save_file(char* data, int file_name,long int data_size);
 
 int main(int argc, char **argv){
@@ -101,6 +114,7 @@ int main(int argc, char **argv){
 
 				filename=optarg;
 				printf("file name: \"%s\"\n",filename);
+				msg_queue_ipc_receive(filename);
 				break;
 
 			case 'm':
@@ -270,10 +284,101 @@ void messages_ipc_receive(char* file_name)
 			exit(EXIT_FAILURE);
 		}
 		name_detach(attach, 0);
-		return;
+		exit(0);
 
 }
 
+
+void msg_queue_ipc_receive(char* file_name){
+
+	mqd_t msg_queue=-1;
+	int read_size = 0;
+	int error_code = 0;
+	struct mq_attr attrs;
+	int ret;
+	msg_buf_t msg;
+	int status;
+	iov_t siov[2];
+
+	printf("Waiting for queue...\n");
+
+	while (msg_queue == -1)
+		{
+			msg_queue = mq_open("/my_queue", O_RDONLY, 0660, NULL);
+		}
+
+	printf ("Successfully opened my_queue:\n");
+
+	sleep(2);
+
+
+
+
+
+		   /* Get the queue's attributes. */
+
+		   ret = mq_getattr (msg_queue, &attrs);
+		   if (ret == -1) {
+		      perror ("mq_getattr()");
+		      exit(EXIT_FAILURE);
+		   }
+
+		   attrs.mq_flags = O_RDONLY | O_NONBLOCK;
+		   mq_setattr(msg_queue, &attrs, NULL);
+
+			int fd = open(file_name, O_WRONLY | O_CREAT);
+			if(fd==-1)
+				{
+					perror("open");
+					exit(EXIT_FAILURE);
+
+				}
+
+
+
+			read_size = mq_receive(msg_queue, siov, sizeof(msg), NULL);
+
+			char *data = (char*)malloc(sizeof(siov[1]));
+			data = siov[1];
+
+		   //char *data = malloc(MQ_MSGSIZE);
+//		   	while (error_code != EAGAIN)
+//		   	{
+//		   		if (data != NULL)
+//		   		{
+//		   			read_size = mq_receive(msg_queue, data, MQ_MSGSIZE, NULL);
+//		   			error_code = errno;
+//		   			if (read_size > 0)
+//		   				save_file(data, fd, read_size);
+//		   		}
+//		   		else
+//		   		{
+//		   			perror("malloc");
+//		   			free(data);
+//		   			mq_close(msg_queue);
+//		   			mq_unlink("/my_queue");
+//		   			exit(EXIT_FAILURE);
+//		   		}
+//		   	}
+
+
+	   free(data);
+	   close(fd);
+
+	   /* Unlink and then close the message queue. */
+	   ret = mq_unlink ("/my_queue");
+	   if (ret == -1) {
+	      perror ("mq_unlink()");
+	      exit(EXIT_FAILURE);
+	   }
+
+	   ret = mq_close (msg_queue);
+	   if (ret == -1) {
+	      perror ("mq_close()");
+	      exit(EXIT_FAILURE);
+	   }
+	   exit(0);
+}
 
 void save_file(char* data,  int file_name,long int data_size)
 {
