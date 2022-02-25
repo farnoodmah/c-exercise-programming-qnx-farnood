@@ -62,6 +62,8 @@ void save_file(char* data, int file_name,long int data_size);
 
 int main(int argc, char **argv){
 
+	int check_file = 0;
+
 	protocol_t protocol = NONE; //for choosing different methods of file transferring {MESSAGE, MSG_QUEUE, PIPE, SHM, NONE}
 	int option;	//terminal arguments
 	int longindex = 0; //getopt_long options
@@ -89,40 +91,41 @@ int main(int argc, char **argv){
 			case 'f':
 				if (strlen(optarg)>MAX_FILE_NAME_SIZE)
 					{
-						perror("ERROR: the name of the file is too long); ");
+						perror("ERROR: the name of the file is too long); \n");
 						exit(EXIT_FAILURE);
 					}
 
 				if (strlen(optarg)==0)
 					{
-						perror("ERROR: the name of the file should be specified); ");
+						perror("ERROR: the name of the file should be specified); \n");
 						exit(EXIT_FAILURE);
 					}
 
 				filename=optarg;
 				printf("file name: \"%s\"\n",filename);
+				check_file = 1;
 				break;
 
 			case 'm':
 				protocol = MESSAGE;
 				break;
 			case 'q':
-				printf("message queue method is not available for now. you can use \"--messages\"");
+				printf("message queue method is not available for now. you can use \"--messages\"\n");
 				return 0;
 			case 'p':
-				printf("pipe method is not available for now. you can use \"--messages\"");
+				printf("pipe method is not available for now. you can use \"--messages\"\n");
 				return 0;
 			case 's':
-				printf("shared memory buffer method is not available for now. you can use \"--messages\"");
+				printf("shared memory buffer method is not available for now. you can use \"--messages\"\n");
 				return 0;
 			case ':':
-				printf("unrecognized command. please use \"--help\" for guide.");
+				printf("unrecognized command. please use \"--help\" for guide.\n");
 				return 0;
 			case '?':
-				printf("unrecognized command. please use \"--help\" for guide.");
+				printf("unrecognized command. please use \"--help\" for guide.\n");
 				return 0;
 			default:
-				printf("unrecognized command. please use \"--help\" for guide.");
+				printf("unrecognized command. please use \"--help\" for guide.\n");
 				return 0;
 			}
 		}
@@ -131,6 +134,12 @@ int main(int argc, char **argv){
 		switch(protocol){
 
 				case MESSAGE:
+				if (check_file==0)
+				{
+				printf("you should determine a file. please use \"--help\" for guide.\n");
+				exit(EXIT_FAILURE);
+				}
+				
 				messages_ipc_receive(filename);
 				break;
 
@@ -155,7 +164,7 @@ void messages_ipc_receive(char* file_name)
 {
 
 	int fh;
-	int rcvid; //Connection ID to sender
+	int rcvid = 0; //Connection ID to sender
 	name_attach_t* attach; //naming the server
 	msg_buf_t msg;
 	int status;
@@ -164,7 +173,7 @@ void messages_ipc_receive(char* file_name)
 	attach = name_attach(NULL, SERVER_NAME, 0);
 	if (attach == NULL)
 			{ //was there an error creating the channel?
-				perror("name_attach"); //look up the errno code and print
+				perror("name_attach\n"); //look up the errno code and print
 				exit(EXIT_FAILURE);
 			}
 
@@ -172,12 +181,16 @@ void messages_ipc_receive(char* file_name)
 	while (1)
 			{
 				printf("Waiting for a file via the message method...\n");
-				fh = open(file_name, O_WRONLY | O_APPEND | O_CREAT, 0644);
+				fh = open(file_name, O_WRONLY | O_CREAT, 0644);
+				while(rcvid == 0){
+					printf("Waiting for the file...\n");
+					rcvid = MsgReceive(attach->chid, &msg, sizeof(msg), NULL);
 
-				rcvid = MsgReceive(attach->chid, &msg, sizeof(msg), NULL);
+				}
+				
 				if (rcvid == -1)
 				{ //was there an error receiving msg?
-					perror("MsgReceive"); //look up errno code and print
+					perror("MsgReceive\n"); //look up errno code and print
 					exit(EXIT_FAILURE); //give up
 				}
 
@@ -198,7 +211,7 @@ void messages_ipc_receive(char* file_name)
 						{
 							if (MsgError(rcvid, ENOMEM ) == -1)
 							{
-								perror("MsgError");
+								perror("MsgError\n");
 								exit(EXIT_FAILURE);
 							}
 						}
@@ -208,7 +221,7 @@ void messages_ipc_receive(char* file_name)
 							status = MsgRead(rcvid, data, msg.msg_file_hdr.data_size, sizeof(file_header_t));
 							if (status == -1)
 								{
-								perror("MsgRead");
+								perror("MsgRead\n");
 								exit(EXIT_FAILURE);
 								}
 
@@ -219,7 +232,7 @@ void messages_ipc_receive(char* file_name)
 							status = MsgReply(rcvid, EOK, checksum, sizeof(checksum));
 							if (status == -1)
 							{
-								perror("MsgReply");
+								perror("MsgReply\n");
 								exit(EXIT_FAILURE);
 							}
 						}
@@ -228,10 +241,22 @@ void messages_ipc_receive(char* file_name)
 					default:
 						if (MsgError(rcvid, ENOSYS) == -1)
 						{
-							perror("MsgError");
+							perror("MsgError\n");
 						}
 						break;
 					}
+
+					close(file);
+							if (status !=0)
+							{
+								perror("fclose error\n");
+								exit(EXIT_FAILURE);
+							}
+							name_detach(attach, 0);
+
+
+							exit(EXIT_SUCCESS);
+
 				}
 				else if (rcvid == 0)
 				{ //pulse
@@ -248,7 +273,7 @@ void messages_ipc_receive(char* file_name)
 						printf("Received unblock pulse\n");
 						if (MsgError(msg.pulse.value.sival_int, -1) == -1)
 						{
-							perror("MsgError");
+							perror("MsgError\n");
 						}
 						break;
 
@@ -263,14 +288,7 @@ void messages_ipc_receive(char* file_name)
 				}
 			}
 
-		close(file);
-		if (status !=0)
-		{
-			perror("fclose error");
-			exit(EXIT_FAILURE);
-		}
-		name_detach(attach, 0);
-		return;
+		
 
 }
 
