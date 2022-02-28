@@ -55,7 +55,7 @@ static struct option longopts[] =
  {
 			{"help", no_argument, NULL, 'h'},
 			{"messages", no_argument, NULL, 'm'},
-			{"queue", required_argument, NULL, 'q'},
+			{"queue", no_argument, NULL, 'q'},
 			{"pipe", required_argument, NULL, 'p'},
 			{"shm", required_argument, NULL, 's'},
 			{"file", required_argument, NULL, 'f'},
@@ -123,8 +123,8 @@ int main(int argc, char **argv){
 				protocol = MESSAGE;
 				break;
 			case 'q':
-				printf("message queue method is not available for now. you can use \"--messages\"\n");
-				return 0;
+				protocol = MSG_QUEUE;
+				break;
 			case 'p':
 				printf("pipe method is not available for now. you can use \"--messages\"\n");
 				return 0;
@@ -157,6 +157,11 @@ int main(int argc, char **argv){
 				break;
 
 				case MSG_QUEUE:
+				if (check_file==0)
+				{
+					printf("you should determine a file. please use \"--help\" for guide.\n");
+					exit(EXIT_FAILURE);
+				}
 				msg_queue_ipc_receive(filename);
 				break;
 
@@ -383,6 +388,8 @@ void msg_queue_ipc_receive(char* file_name){
 
 	   free(data);
 	   close(fd);
+
+	   printf("File has been received successfully");
 
 	   /* Unlink and then close the message queue. */
 	   ret = mq_unlink ("/my_queue");

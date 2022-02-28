@@ -35,7 +35,7 @@
  {
 			{"help", no_argument, NULL, 'h'},
 			{"messages", no_argument, NULL, 'm'},
-			{"queue", required_argument, NULL, 'q'},
+			{"queue", no_argument, NULL, 'q'},
 			{"pipe", required_argument, NULL, 'p'},
 			{"shm", required_argument, NULL, 's'},
 			{"file", required_argument, NULL, 'f'},
@@ -95,12 +95,14 @@ int main(int argc, char **argv){
 							check_file = 1;
 
 							break;
+
+			case 'q':
+			protocol = MSG_QUEUE;
+			break;
 			case 'm':
 				protocol = MESSAGE;
 				break;
-			case 'q':
-				printf("message queue method is not available for now. you can use \"ipc_sendfile --messages\"\n");
-				return 0;
+
 			case 'p':
 				printf("pipe method is not available for now. you can use \"ipc_sendfile --messages\"\n");
 
@@ -134,6 +136,15 @@ int main(int argc, char **argv){
 						message_ipc_sendfile(filename);
 						break;
 
+						case MSG_QUEUE:
+
+							if (check_file==0)
+							{
+								printf("you should determine a file. please use \"--help\" for guide.\n");
+								exit(EXIT_FAILURE);
+							}
+							msg_queue_ipc_sendfile(filename);
+							break;
 						case NONE:
 						printf("unrecognized command. please use \"--help\" for guide.\n");
 						exit(EXIT_FAILURE);
@@ -154,20 +165,19 @@ void message_ipc_sendfile(char* filename){
 		long int filesize = file_size_handler(filename); //finding the size of the file
 		int fd;
 
-		int coid; //Connection ID to server
+		int coid = -1; //Connection ID to server
 		file_header_t hdr; //msg header will specify how many bytes of data will follow
 		char incoming_message[10]; //space for server's reply
 		int status; //status return value
 		iov_t siov[2]; //create a 2 part iov
 
+			while(coid==-1){
+				printf("looking for the server...\n");
+				coid = name_open(SERVER_NAME, 0);
+				sleep(5);
 
-		// locate the server
-			coid = name_open(SERVER_NAME, 0);
-			if (coid == -1)
-			{ //was there an error attaching to server?
-			perror("ERROR: finding the name of server failed\n"); //look up error code and print
-			exit(EXIT_FAILURE);
 			}
+
 
 			printf("\nSending the following file to the server: %s\n", filename);
 
@@ -270,6 +280,7 @@ void msg_queue_ipc_sendfile(char* filename){
 	 	}
 
 	 char *buffer = (char*)malloc(file_size);
+
 
 
 	 while (sent_bytes < file_size)
