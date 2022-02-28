@@ -75,15 +75,15 @@ int main(int argc, char **argv){
 
 			switch(option){
 			case 'h':
-				printf("\n\n usage: receive_file [--help] [--messages –file <path>] [--queue –file <path>][--pipe –file <path>]\n"
-					   "		             [shm –file <path> <buffer_size_in_kb>]\n\n\n"
+				printf("\n\n usage: receive_file [--help] [--messages --file <path>] [--queue --file <path>][--pipe --file <path>]\n"
+					   "		             [shm --file <path> <buffer_size_in_kb>]\n\n\n"
 					   "receive_file is used to receive the files from a client (send_file) via different IPC methods (messages, queue, pipe, and shm).\n"
 						"Primary commands:\n\n"
-						"–message     For receiving files with the message option.\n"
-						"–queue    	  For receiving files with the message queue option. (*not implemented)\n"
-						"–pipe        For receiving files with the pipe option. (*not implemented)\n"
-						"–shm         For receiving files by using a shared memory buffer. (*not implemented)\n\n"
-						"\"receive_file     –help\" lists available commands and guides.\n");
+						"--message     For receiving files with the message option.\n"
+						"--queue    	  For receiving files with the message queue option. (*not implemented)\n"
+						"--pipe        For receiving files with the pipe option. (*not implemented)\n"
+						"--shm         For receiving files by using a shared memory buffer. (*not implemented)\n\n"
+						"\"receive_file     --help\" lists available commands and guides.\n");
 
 
 				break;
@@ -174,6 +174,7 @@ void messages_ipc_receive(char* file_name)
 	if (attach == NULL)
 			{ //was there an error creating the channel?
 				perror("name_attach\n"); //look up the errno code and print
+				name_detach(attach, 0);
 				exit(EXIT_FAILURE);
 			}
 
@@ -191,6 +192,7 @@ void messages_ipc_receive(char* file_name)
 				if (rcvid == -1)
 				{ //was there an error receiving msg?
 					perror("MsgReceive\n"); //look up errno code and print
+					close(file);
 					exit(EXIT_FAILURE); //give up
 				}
 
@@ -212,6 +214,8 @@ void messages_ipc_receive(char* file_name)
 							if (MsgError(rcvid, ENOMEM ) == -1)
 							{
 								perror("MsgError\n");
+								free(data);
+								close(file);
 								exit(EXIT_FAILURE);
 							}
 						}
@@ -222,6 +226,8 @@ void messages_ipc_receive(char* file_name)
 							if (status == -1)
 								{
 								perror("MsgRead\n");
+								free(data);
+								close(file);
 								exit(EXIT_FAILURE);
 								}
 
@@ -233,6 +239,7 @@ void messages_ipc_receive(char* file_name)
 							if (status == -1)
 							{
 								perror("MsgReply\n");
+								close(file);
 								exit(EXIT_FAILURE);
 							}
 						}
@@ -242,11 +249,13 @@ void messages_ipc_receive(char* file_name)
 						if (MsgError(rcvid, ENOSYS) == -1)
 						{
 							perror("MsgError\n");
+							close(file);
+							exit(EXIT_FAILURE);
 						}
 						break;
 					}
 
-					close(file);
+							close(file);
 							if (status !=0)
 							{
 								perror("fclose error\n");

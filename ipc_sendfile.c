@@ -60,15 +60,15 @@ int main(int argc, char **argv){
 
 			switch(option){
 			case 'h':
-				printf("\n\nusage: send_file [--help] [--messages –file <path>] [--queue –file <path>][--pipe –file <path>]\n"
-					   "		             [shm –file <path> <buffer_size_in_kb>]\n\n\n"
+				printf("\n\nusage: send_file [--help] [--messages --file <path>] [--queue --file <path>][--pipe --file <path>]\n"
+					   "		             [shm --file <path> <buffer_size_in_kb>]\n\n\n"
 					   "send_file is used to send files between a client (send_file) and server (receive_file) via different IPC methods (messages, queue, pipe, and shm).\n"
 						"Primary commands:\n\n"
-						"–message     For sending files with the message option.\n"
-						"–queue    For sending files with the message queue option. (*not implemented)\n"
-						"–pipe        For sending files with the pipe option. (*not implemented)\n"
-						"–shm         For sending files by using a shared memory buffer. (*not implemented)\n\n"
-						"\"send_file     –help\" lists available commands and guides.\n\n");
+						"--message     For sending files with the message option.\n"
+						"--queue    For sending files with the message queue option. (*not implemented)\n"
+						"--pipe        For sending files with the pipe option. (*not implemented)\n"
+						"--shm         For sending files by using a shared memory buffer. (*not implemented)\n\n"
+						"\"send_file     --help\" lists available commands and guides.\n\n");
 
 
 				break;
@@ -193,7 +193,10 @@ void message_ipc_sendfile(char* filename){
 
 				if( ret	== -1 )
 				{
+
 						perror( "Error reading\n" );
+						free(buffer);
+						close(fd);
 						exit(EXIT_FAILURE);
 				}
 
@@ -209,6 +212,8 @@ void message_ipc_sendfile(char* filename){
 				if (status == -1)
 					{ //was there an error sending to server?
 						perror("MsgSend\n");
+							free(buffer);
+							close(fd);
 						exit(EXIT_FAILURE);
 					}
 
