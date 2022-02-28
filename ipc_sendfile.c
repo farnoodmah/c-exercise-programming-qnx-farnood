@@ -49,6 +49,7 @@ void msg_queue_ipc_sendfile(char* filename);
 long int file_size_handler(char* file_name);
 int main(int argc, char **argv){
 
+	int check_file = 0;
 	protocol_t protocol = NONE; //for choosing different methods of file transferring {MESSAGE, MSG_QUEUE, PIPE, SHM, NONE}
 	int option; //terminal arguments
 	int longindex = 0; //getopt_long options
@@ -60,15 +61,15 @@ int main(int argc, char **argv){
 
 			switch(option){
 			case 'h':
-				printf("\n\nusage: send_file [--help] [--messages –file <path>] [--queue –file <path>][--pipe –file <path>]\n"
-					   "		             [shm –file <path> <buffer_size_in_kb>]\n\n\n"
+				printf("\n\nusage: send_file [--help] [--messages --file <path>] [--queue --file <path>][--pipe --file <path>]\n"
+					   "		             [shm --file <path> <buffer_size_in_kb>]\n\n\n"
 					   "send_file is used to send files between a client (send_file) and server (receive_file) via different IPC methods (messages, queue, pipe, and shm).\n"
 						"Primary commands:\n\n"
-						"–message     For sending files with the message option.\n"
-						"–queue    For sending files with the message queue option. (*not implemented)\n"
-						"–pipe        For sending files with the pipe option. (*not implemented)\n"
-						"–shm         For sending files by using a shared memory buffer. (*not implemented)\n\n"
-						"\"send_file     –help\" lists available commands and guides.\n\n");
+						"--message     For sending files with the message option.\n"
+						"--queue    For sending files with the message queue option. (*not implemented)\n"
+						"--pipe        For sending files with the pipe option. (*not implemented)\n"
+						"--shm         For sending files by using a shared memory buffer. (*not implemented)\n\n"
+						"\"send_file     --help\" lists available commands and guides.\n\n");
 
 
 				break;
@@ -79,39 +80,40 @@ int main(int argc, char **argv){
 
 							if (strlen(optarg)>MAX_FILE_NAME_SIZE)
 							{
-								perror("ERROR: the name of the file is too long); ");
+								perror("ERROR: the name of the file is too long); \n");
 								exit(EXIT_FAILURE);
 							}
 
 							if (strlen(optarg)==0)
 							{
-								perror("ERROR: the name of the file should be specified); ");
+								perror("ERROR: the name of the file should be specified); \n");
 								exit(EXIT_FAILURE);
 							}
 
 							filename = optarg;
 							printf("File name: \"%s\"\n",filename);
-							msg_queue_ipc_sendfile(filename);
+							check_file = 1;
+
 							break;
 			case 'm':
 				protocol = MESSAGE;
 				break;
 			case 'q':
-				printf("message queue method is not available for now. you can use \"ipc_sendfile --messages\"");
+				printf("message queue method is not available for now. you can use \"ipc_sendfile --messages\"\n");
 				return 0;
 			case 'p':
-				printf("pipe method is not available for now. you can use \"ipc_sendfile --messages\"");
+				printf("pipe method is not available for now. you can use \"ipc_sendfile --messages\"\n");
 
 				return 0;
 			case 's':
-				printf("shared memory buffer method is not available for now. you can use \"ipc_sendfile --messages\"");
+				printf("shared memory buffer method is not available for now. you can use \"ipc_sendfile --messages\"\n");
 				return 0;
 
 			case ':':
-			    printf("unrecognized command. please use \"--help\" for guide.");
+			    printf("unrecognized command. please use \"--help\" for guide.\n");
 			    return 0;
 			case '?':
-				printf("unrecognized command. please use \"--help\" for guide.");
+				printf("unrecognized command. please use \"--help\" for guide.\n");
 				return 0;
 			 default:
 				 break;
@@ -123,15 +125,21 @@ int main(int argc, char **argv){
 		switch(protocol){
 
 						case MESSAGE:
+						if (check_file==0)
+						{
+							printf("you should determine a file. please use \"--help\" for guide.\n");
+							exit(EXIT_FAILURE);
+						}
+				
 						message_ipc_sendfile(filename);
 						break;
 
 						case NONE:
-						printf("unrecognized command. please use \"--help\" for guide.");
+						printf("unrecognized command. please use \"--help\" for guide.\n");
 						exit(EXIT_FAILURE);
 
 						default:
-						printf("unrecognized command. please use \"--help\" for guide.");
+						printf("unrecognized command. please use \"--help\" for guide.\n");
 						exit(EXIT_FAILURE);
 
 					}
@@ -157,7 +165,7 @@ void message_ipc_sendfile(char* filename){
 			coid = name_open(SERVER_NAME, 0);
 			if (coid == -1)
 			{ //was there an error attaching to server?
-			perror("ERROR: finding the name of server failed"); //look up error code and print
+			perror("ERROR: finding the name of server failed\n"); //look up error code and print
 			exit(EXIT_FAILURE);
 			}
 
@@ -169,7 +177,7 @@ void message_ipc_sendfile(char* filename){
 
 			if(fd==-1)
 				{
-					perror("open");
+					perror("open\n");
 					exit(EXIT_FAILURE);
 
 				}
@@ -185,7 +193,10 @@ void message_ipc_sendfile(char* filename){
 
 				if( ret	== -1 )
 				{
-						perror( "Error reading" );
+
+						perror( "Error reading\n" );
+						free(buffer);
+						close(fd);
 						exit(EXIT_FAILURE);
 				}
 
@@ -200,14 +211,16 @@ void message_ipc_sendfile(char* filename){
 
 				if (status == -1)
 					{ //was there an error sending to server?
-						perror("MsgSend");
+						perror("MsgSend\n");
+							free(buffer);
+							close(fd);
 						exit(EXIT_FAILURE);
 					}
 
 
 				printf("\nData sent: %li\n", filesize);
 
-				printf("Complete");
+				printf("Complete\n");
 
 				free(buffer);
 
@@ -335,7 +348,7 @@ long int file_size_handler(char* file_name){
 	fh = open(file_name, O_RDONLY);
 	if(fh==-1)
 	{
-		perror("open");
+		perror("open\n");
 		exit(EXIT_FAILURE);
 
 	}
