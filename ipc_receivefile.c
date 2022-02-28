@@ -121,8 +121,8 @@ int main(int argc, char **argv){
 				protocol = MESSAGE;
 				break;
 			case 'q':
-				printf("message queue method is not available for now. you can use \"--messages\"");
-				return 0;
+				protocol = MSG_QUEUE;
+				break;
 			case 'p':
 				printf("pipe method is not available for now. you can use \"--messages\"");
 				return 0;
@@ -146,6 +146,10 @@ int main(int argc, char **argv){
 
 				case MESSAGE:
 				messages_ipc_receive(filename);
+				break;
+
+				case MSG_QUEUE:
+				msg_queue_ipc_receive(filename);
 				break;
 
 				case NONE:
@@ -296,11 +300,9 @@ void msg_queue_ipc_receive(char* file_name){
 	int error_code = 0;
 	struct mq_attr attrs;
 	int ret;
-	msg_buf_t msg;
-	int status;
-	iov_t siov[2];
 
-	printf("Waiting for queue...\n");
+
+	printf("Waiting for the sender queue...\n");
 
 	while (msg_queue == -1)
 		{
@@ -310,9 +312,6 @@ void msg_queue_ipc_receive(char* file_name){
 	printf ("Successfully opened my_queue:\n");
 
 	sleep(2);
-
-
-
 
 
 		   /* Get the queue's attributes. */
@@ -335,31 +334,25 @@ void msg_queue_ipc_receive(char* file_name){
 				}
 
 
-
-			read_size = mq_receive(msg_queue, siov, sizeof(msg), NULL);
-
-			char *data = (char*)malloc(sizeof(siov[1]));
-			data = siov[1];
-
-		   //char *data = malloc(MQ_MSGSIZE);
-//		   	while (error_code != EAGAIN)
-//		   	{
-//		   		if (data != NULL)
-//		   		{
-//		   			read_size = mq_receive(msg_queue, data, MQ_MSGSIZE, NULL);
-//		   			error_code = errno;
-//		   			if (read_size > 0)
-//		   				save_file(data, fd, read_size);
-//		   		}
-//		   		else
-//		   		{
-//		   			perror("malloc");
-//		   			free(data);
-//		   			mq_close(msg_queue);
-//		   			mq_unlink("/my_queue");
-//		   			exit(EXIT_FAILURE);
-//		   		}
-//		   	}
+		   char *data = malloc(MQ_MSGSIZE);
+		   	while (error_code != EAGAIN)
+		   	{
+		   		if (data != NULL)
+		   		{
+		   			read_size = mq_receive(msg_queue, data, MQ_MSGSIZE, NULL);
+		   			error_code = errno;
+		   			if (read_size > 0)
+		   				save_file(data, fd, read_size);
+		   		}
+		   		else
+		   		{
+		   			perror("malloc");
+		   			free(data);
+		   			mq_close(msg_queue);
+		   			mq_unlink("/my_queue");
+		   			exit(EXIT_FAILURE);
+		   		}
+		   	}
 
 
 	   free(data);
@@ -385,6 +378,5 @@ void save_file(char* data,  int file_name,long int data_size)
 
 	//write the file
 	write(file_name,data,data_size);
-	printf( "Successfully saved the file\n");
 
 }
