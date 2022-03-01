@@ -14,7 +14,7 @@ MESSAGE, MESSAGE QUEUE, PIPE and SHARED MEMORY
 
 - [x] --help implementation
 - [x] MESSAGES transport type
-- [ ] QUEUE transport type
+- [x] QUEUE transport type
 - [ ] PIPE transport type
 - [ ] SHARED_MEMORY transport type
 

@@ -5,6 +5,7 @@
  * 
  * Available protocols:
  *		 + messages 
+ *		 + queue
  *------------------------------------------------------
  
  *  Created on: Feb 24, 2022
@@ -93,7 +94,7 @@ int main(int argc, char **argv){
 					   "receive_file is used to receive the files from a client (send_file) via different IPC methods (messages, queue, pipe, and shm).\n"
 						"Primary commands:\n\n"
 						"--message     For receiving files with the message option.\n"
-						"--queue    	  For receiving files with the message queue option. (*not implemented)\n"
+						"--queue    	  For receiving files with the message queue option.\n"
 						"--pipe        For receiving files with the pipe option. (*not implemented)\n"
 						"--shm         For receiving files by using a shared memory buffer. (*not implemented)\n\n"
 						"\"receive_file     --help\" lists available commands and guides.\n");
@@ -349,7 +350,7 @@ void msg_queue_ipc_receive(char* file_name){
 
 		   ret = mq_getattr (msg_queue, &attrs);
 		   if (ret == -1) {
-		      perror ("mq_getattr()");
+		      perror ("mq_getattr()\n");
 		      exit(EXIT_FAILURE);
 		   }
 
@@ -359,7 +360,7 @@ void msg_queue_ipc_receive(char* file_name){
 			int fd = open(file_name, O_WRONLY | O_CREAT);
 			if(fd==-1)
 				{
-					perror("open");
+					perror("open\n");
 					exit(EXIT_FAILURE);
 
 				}
@@ -389,7 +390,7 @@ void msg_queue_ipc_receive(char* file_name){
 	   free(data);
 	   close(fd);
 
-	   printf("File has been received successfully");
+	   printf("File has been received successfully\n");
 
 	   /* Unlink and then close the message queue. */
 	   ret = mq_unlink ("/my_queue");

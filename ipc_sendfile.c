@@ -1,5 +1,13 @@
 /*
- * ipc_sendfile.c
+ *	ipc_sendfile.c
+ *
+ * 	USE QNX TERMINAL TO RUN IT. FOR MORE INFORMATION AND GUIDE GO TO THE "README".
+ *
+ * Available protocols:
+ *		 + messages
+ *		 + queue
+ *------------------------------------------------------
+ *
  *
  *  Created on: Feb 24, 2022
  *   Author: Farnood Mahboubi
@@ -244,7 +252,7 @@ void msg_queue_ipc_sendfile(char* filename){
 	mqd_t msg_queue;
 	long int file_size = file_size_handler(filename);
 	long int sent_bytes = 0;
-	int ret, i;
+	int ret;
 	struct mq_attr attrs;
 
 
@@ -256,7 +264,7 @@ void msg_queue_ipc_sendfile(char* filename){
 	{
 		if (errno == ENOENT)
 		{
-			printf("the receiver is connecting...n");
+			printf("the receiver is connecting...\n");
 			msg_queue = mq_open("/my_queue", O_CREAT | O_EXCL | O_WRONLY, 0660, NULL);
 			sleep(2);
 		}
@@ -291,13 +299,13 @@ void msg_queue_ipc_sendfile(char* filename){
 					if( read_size == -1 )
 						{
 							free(buffer);
-							perror( "Error reading the file" );
+							perror( "Error reading the file\n" );
 							exit(EXIT_FAILURE);
 						}
 	 	 			int error_check = mq_send(msg_queue, buffer, read_size, MQ_PRIO_MAX - 1);
 	 	 			if (error_check == -1)
 	 	 			{
-	 	 				perror("mq_send");
+	 	 				perror("mq_send\n");
 	 	 				free(buffer);
 	 	 				exit(EXIT_FAILURE);
 	 	 			}
@@ -305,7 +313,7 @@ void msg_queue_ipc_sendfile(char* filename){
 	 	 		}
 	 	 		else
 	 	 		{
-	 	 			perror("malloc");
+	 	 			perror("malloc\n");
 	 	 			free(buffer);
 	 	 			exit(EXIT_FAILURE);
 	 	 		}
@@ -330,18 +338,18 @@ void msg_queue_ipc_sendfile(char* filename){
 	 	 	ret = mq_close(msg_queue);
 			  if (ret == -1)
 			{
-				  perror ("mq_close()");
+				  perror ("mq_close()\n");
 					exit(EXIT_FAILURE);
 
 			}
 	 	 	ret = close(fd);
 			  if (ret !=0){
-				  perror ("fclose error");
+				  perror ("fclose error\n");
 				  exit(EXIT_FAILURE);
 			  }
 
 	 	if (ret == -1) {
-	 	    perror ("mq_close()");
+	 	    perror ("mq_close()\n");
 	 	    exit(EXIT_FAILURE);
 	 	}
 
