@@ -8,6 +8,11 @@
 #define MAX_FILE_NAME_SIZE 1024
 #define FILE_IOV_MSG_TYPE (_IO_MAX + 2)
 
+// message queue: message size & max number of message
+#define MQ_MAXMSG 1024
+#define MQ_MSGSIZE 4096
+
+
 //layout of msg's should always defined by a struct, and ID'd by a msg type 
 // number as the first member
 typedef struct

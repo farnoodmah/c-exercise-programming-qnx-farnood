@@ -5,6 +5,7 @@
  * 
  * Available protocols:
  *		 + messages 
+ *		 + queue
  *------------------------------------------------------
  
  *  Created on: Feb 24, 2022
@@ -27,6 +28,16 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <sys/netmgr.h>     // #define for ND_LOCAL_NODE is in here
+#include "iov_server.h"
+#include <sys/iofunc.h>
+#include <sys/dispatch.h>
+#include <sys/stat.h>
+#include <malloc.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <mqueue.h>
+#include <time.h>
 
 #include "iov_server.h"
 
@@ -45,7 +56,7 @@ static struct option longopts[] =
  {
 			{"help", no_argument, NULL, 'h'},
 			{"messages", no_argument, NULL, 'm'},
-			{"queue", required_argument, NULL, 'q'},
+			{"queue", no_argument, NULL, 'q'},
 			{"pipe", required_argument, NULL, 'p'},
 			{"shm", required_argument, NULL, 's'},
 			{"file", required_argument, NULL, 'f'},
@@ -57,7 +68,10 @@ msg_buf_t filemsg;
 int file;
 
 
-void messages_ipc_receive(char* filename);
+void messages_ipc_receive(char* file_name);
+void msg_queue_ipc_receive(char* file_name);
+
+
 void save_file(char* data, int file_name,long int data_size);
 
 int main(int argc, char **argv){
@@ -80,7 +94,7 @@ int main(int argc, char **argv){
 					   "receive_file is used to receive the files from a client (send_file) via different IPC methods (messages, queue, pipe, and shm).\n"
 						"Primary commands:\n\n"
 						"--message     For receiving files with the message option.\n"
-						"--queue    	  For receiving files with the message queue option. (*not implemented)\n"
+						"--queue    	  For receiving files with the message queue option.\n"
 						"--pipe        For receiving files with the pipe option. (*not implemented)\n"
 						"--shm         For receiving files by using a shared memory buffer. (*not implemented)\n\n"
 						"\"receive_file     --help\" lists available commands and guides.\n");
@@ -110,8 +124,8 @@ int main(int argc, char **argv){
 				protocol = MESSAGE;
 				break;
 			case 'q':
-				printf("message queue method is not available for now. you can use \"--messages\"\n");
-				return 0;
+				protocol = MSG_QUEUE;
+				break;
 			case 'p':
 				printf("pipe method is not available for now. you can use \"--messages\"\n");
 				return 0;
@@ -141,6 +155,15 @@ int main(int argc, char **argv){
 				}
 				
 				messages_ipc_receive(filename);
+				break;
+
+				case MSG_QUEUE:
+				if (check_file==0)
+				{
+					printf("you should determine a file. please use \"--help\" for guide.\n");
+					exit(EXIT_FAILURE);
+				}
+				msg_queue_ipc_receive(filename);
 				break;
 
 				case NONE:
@@ -302,11 +325,92 @@ void messages_ipc_receive(char* file_name)
 }
 
 
+void msg_queue_ipc_receive(char* file_name){
+
+	mqd_t msg_queue=-1;
+	int read_size = 0;
+	int error_code = 0;
+	struct mq_attr attrs;
+	int ret;
+
+
+	printf("Waiting for the sender queue...\n");
+
+	while (msg_queue == -1)
+		{
+			msg_queue = mq_open("/my_queue", O_RDONLY, 0660, NULL);
+		}
+
+	printf ("Successfully opened my_queue:\n");
+
+	sleep(2);
+
+
+		   /* Get the queue's attributes. */
+
+		   ret = mq_getattr (msg_queue, &attrs);
+		   if (ret == -1) {
+		      perror ("mq_getattr()\n");
+		      exit(EXIT_FAILURE);
+		   }
+
+		   attrs.mq_flags = O_RDONLY | O_NONBLOCK;
+		   mq_setattr(msg_queue, &attrs, NULL);
+
+			int fd = open(file_name, O_WRONLY | O_CREAT);
+			if(fd==-1)
+				{
+					perror("open\n");
+					exit(EXIT_FAILURE);
+
+				}
+
+
+		   char *data = malloc(MQ_MSGSIZE);
+		   	while (error_code != EAGAIN)
+		   	{
+		   		if (data != NULL)
+		   		{
+		   			read_size = mq_receive(msg_queue, data, MQ_MSGSIZE, NULL);
+		   			error_code = errno;
+		   			if (read_size > 0)
+		   				save_file(data, fd, read_size);
+		   		}
+		   		else
+		   		{
+		   			perror("malloc");
+		   			free(data);
+		   			mq_close(msg_queue);
+		   			mq_unlink("/my_queue");
+		   			exit(EXIT_FAILURE);
+		   		}
+		   	}
+
+
+	   free(data);
+	   close(fd);
+
+	   printf("File has been received successfully\n");
+
+	   /* Unlink and then close the message queue. */
+	   ret = mq_unlink ("/my_queue");
+	   if (ret == -1) {
+	      perror ("mq_unlink()");
+	      exit(EXIT_FAILURE);
+	   }
+
+	   ret = mq_close (msg_queue);
+	   if (ret == -1) {
+	      perror ("mq_close()");
+	      exit(EXIT_FAILURE);
+	   }
+	   exit(0);
+}
+
 void save_file(char* data,  int file_name,long int data_size)
 {
 
 	//write the file
 	write(file_name,data,data_size);
-	printf( "Successfully saved the file\n");
 
 }

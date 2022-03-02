@@ -1,5 +1,13 @@
 /*
- * ipc_sendfile.c
+ *	ipc_sendfile.c
+ *
+ * 	USE QNX TERMINAL TO RUN IT. FOR MORE INFORMATION AND GUIDE GO TO THE "README".
+ *
+ * Available protocols:
+ *		 + messages
+ *		 + queue
+ *------------------------------------------------------
+ *
  *
  *  Created on: Feb 24, 2022
  *   Author: Farnood Mahboubi
@@ -26,8 +34,8 @@
 #include <malloc.h>
 #include <sys/types.h>
 #include <unistd.h>
-
-
+#include <mqueue.h>
+#include <time.h>
 
 
  static struct option longopts[] =
@@ -35,7 +43,7 @@
  {
 			{"help", no_argument, NULL, 'h'},
 			{"messages", no_argument, NULL, 'm'},
-			{"queue", required_argument, NULL, 'q'},
+			{"queue", no_argument, NULL, 'q'},
 			{"pipe", required_argument, NULL, 'p'},
 			{"shm", required_argument, NULL, 's'},
 			{"file", required_argument, NULL, 'f'},
@@ -45,6 +53,7 @@
 char *filename;
 
 void message_ipc_sendfile(char* filename);
+void msg_queue_ipc_sendfile(char* filename);
 long int file_size_handler(char* file_name);
 int main(int argc, char **argv){
 
@@ -89,18 +98,19 @@ int main(int argc, char **argv){
 								exit(EXIT_FAILURE);
 							}
 
-
 							filename = optarg;
 							printf("File name: \"%s\"\n",filename);
 							check_file = 1;
 
 							break;
+
+			case 'q':
+			protocol = MSG_QUEUE;
+			break;
 			case 'm':
 				protocol = MESSAGE;
 				break;
-			case 'q':
-				printf("message queue method is not available for now. you can use \"ipc_sendfile --messages\"\n");
-				return 0;
+
 			case 'p':
 				printf("pipe method is not available for now. you can use \"ipc_sendfile --messages\"\n");
 
@@ -134,6 +144,15 @@ int main(int argc, char **argv){
 						message_ipc_sendfile(filename);
 						break;
 
+						case MSG_QUEUE:
+
+							if (check_file==0)
+							{
+								printf("you should determine a file. please use \"--help\" for guide.\n");
+								exit(EXIT_FAILURE);
+							}
+							msg_queue_ipc_sendfile(filename);
+							break;
 						case NONE:
 						printf("unrecognized command. please use \"--help\" for guide.\n");
 						exit(EXIT_FAILURE);
@@ -154,20 +173,19 @@ void message_ipc_sendfile(char* filename){
 		long int filesize = file_size_handler(filename); //finding the size of the file
 		int fd;
 
-		int coid; //Connection ID to server
+		int coid = -1; //Connection ID to server
 		file_header_t hdr; //msg header will specify how many bytes of data will follow
 		char incoming_message[10]; //space for server's reply
 		int status; //status return value
 		iov_t siov[2]; //create a 2 part iov
 
+			while(coid==-1){
+				printf("looking for the server...\n");
+				coid = name_open(SERVER_NAME, 0);
+				sleep(5);
 
-		// locate the server
-			coid = name_open(SERVER_NAME, 0);
-			if (coid == -1)
-			{ //was there an error attaching to server?
-			perror("ERROR: finding the name of server failed\n"); //look up error code and print
-			exit(EXIT_FAILURE);
 			}
+
 
 			printf("\nSending the following file to the server: %s\n", filename);
 
@@ -228,6 +246,117 @@ void message_ipc_sendfile(char* filename){
 
 
 }
+
+void msg_queue_ipc_sendfile(char* filename){
+
+	mqd_t msg_queue;
+	long int file_size = file_size_handler(filename);
+	long int sent_bytes = 0;
+	int ret;
+	struct mq_attr attrs;
+
+
+	mq_unlink("/my_queue");
+
+	int fd;
+	msg_queue = mq_open("/my_queue", O_CREAT | O_EXCL | O_WRONLY, 0660, NULL);
+	while (msg_queue == -1)
+	{
+		if (errno == ENOENT)
+		{
+			printf("the receiver is connecting...\n");
+			msg_queue = mq_open("/my_queue", O_CREAT | O_EXCL | O_WRONLY, 0660, NULL);
+			sleep(2);
+		}
+		else
+		{
+			perror("mq_open()");
+			exit(EXIT_FAILURE);
+		}
+
+	}
+
+	 printf ("Successfully opened my_queue:\n");
+
+	 fd = open(filename, O_RDONLY| O_LARGEFILE, S_IRUSR | S_IWUSR );
+
+	 if(fd==-1)
+	 	{
+	 		perror("open");
+	 		exit(EXIT_FAILURE);
+
+	 	}
+
+	 char *buffer = (char*)malloc(file_size);
+
+
+
+	 while (sent_bytes < file_size)
+	 	 	{
+	 	 		if (buffer != NULL)
+	 	 		{
+	 	 			long int read_size = read(fd, buffer, MQ_MSGSIZE);
+					if( read_size == -1 )
+						{
+							free(buffer);
+							perror( "Error reading the file\n" );
+							exit(EXIT_FAILURE);
+						}
+	 	 			int error_check = mq_send(msg_queue, buffer, read_size, MQ_PRIO_MAX - 1);
+	 	 			if (error_check == -1)
+	 	 			{
+	 	 				perror("mq_send\n");
+	 	 				free(buffer);
+	 	 				exit(EXIT_FAILURE);
+	 	 			}
+	 	 			sent_bytes += read_size;
+	 	 		}
+	 	 		else
+	 	 		{
+	 	 			perror("malloc\n");
+	 	 			free(buffer);
+	 	 			exit(EXIT_FAILURE);
+	 	 		}
+	 	 	}
+
+	 	 	free(buffer);
+
+
+	 	 	printf("File is sent to the queue.\n");
+	 	 	printf("Waiting for client to pick up...\n");
+	 	 	int check_empty = -1;
+
+	 	 	// check if the queue is empty
+	 	 	while (check_empty != 0)
+	 	 	{
+	 	 		mq_getattr(msg_queue, &attrs);
+	 	 		check_empty = attrs.mq_curmsgs;
+	 	 	}
+
+	 	 	printf("Client picked it up | File size = %ld byte(s).\n", file_size);
+
+	 	 	ret = mq_close(msg_queue);
+			  if (ret == -1)
+			{
+				  perror ("mq_close()\n");
+					exit(EXIT_FAILURE);
+
+			}
+	 	 	ret = close(fd);
+			  if (ret !=0){
+				  perror ("fclose error\n");
+				  exit(EXIT_FAILURE);
+			  }
+
+	 	if (ret == -1) {
+	 	    perror ("mq_close()\n");
+	 	    exit(EXIT_FAILURE);
+	 	}
+
+	 	exit(EXIT_FAILURE);
+
+}
+
 
 long int file_size_handler(char* file_name){
 
