@@ -418,39 +418,61 @@ void msg_queue_ipc_receive(char* file_name){
 }
 
 void pipe_ipc_receive(char* file_name){
+
+
 	int fh;
 	int fifo;
 	char  receive_size[80];
 	long int file_size;
 	char * ptr_end;
+	int ret = -1;
+	//opening an empty file to write and save the data
 	fh = open(file_name, O_WRONLY | O_CREAT, 0644);
 
-	// FIFO file path
+	if(fh==-1)
+		 	{
+		 		perror("open");
+		 		exit(EXIT_FAILURE);
+
+		 	}
+
+	//FIFO (PIPE) directory
 	char * myfifo = "myfifo";
 
 	// Creating the named file(FIFO)
 	// mkfifo(<pathname>,<permission>)
 	 mkfifo(myfifo, 0666);
 
-	 // First open in read only and read
+	 // open the FIFO in read only
 	 fifo = open(myfifo,O_RDONLY);
 	 int read_bytes;
 	 sleep(10);
-	 read(fifo,receive_size,80);
+	 while (ret ==-1){
+		 printf("waiting for the connection ...\n");
+		 printf("getting the size of the receiving file\n");
+		 ret = read(fifo,receive_size,80);
+	 }
 
+	 printf("read the data successfully \n");
 
-
-
+	 // changing the received size of the file from string to long int
 	 file_size = strtol (receive_size,&ptr_end,10);
 
-	 printf("the size%ld \n",file_size);
+	 printf("the size of the file is %ld \n",file_size);
 
 	 char *buffer = (char*)malloc(file_size);
 	 read(fifo, buffer, file_size);
+
+	 // writing the received the data
 	 save_file(buffer,fh,file_size);
 
 	 free(buffer);
-	 close(fh);
+	 ret = close(fh);
+	 	if (ret !=0){
+	 			 perror ("fclose error");
+	 			free(buffer);
+	 		exit(EXIT_FAILURE);
+	 			  }
 	 close(fifo);
 	 remove(myfifo);
 
@@ -459,130 +481,6 @@ void pipe_ipc_receive(char* file_name){
 }
 
 
-//void msg_shm_ipc_receive(char* file_name){
-//	int fd;
-//	shmem_t *ptr;
-//	int ret;
-//	pthread_mutexattr_t mutex_attr;
-//	pthread_condattr_t cond_attr;
-//
-//	if (argc != 2)
-//	{
-//			printf("ERROR: use: shmem_posix_creator shared_memory_object_name\n");
-//			printf("Example: shmem_posix_creator /wally\n");
-//			exit(EXIT_FAILURE);
-//	}
-//	if (*argv[1] != '/')
-//	{
-//		printf("ERROR: the shared memory name should start with a leading '/' character\n");
-//		exit(EXIT_FAILURE);
-//	}
-//
-//	printf("Creating shared memory object: '%s'\n", argv[1]);
-//	fd = shm_open(argv[1], O_RDWR | O_CREAT | O_EXCL, 0660);
-//	if (fd == -1)
-//	{
-//			perror("shm_open()");
-//			unlink_and_exit(argv[1]);
-//	}
-//
-//	/* set the size of the shared memory object, allocating at least one page of memory */
-//
-//	ret = ftruncate(fd, sizeof(shmem_t));
-//	if (ret == -1)
-//		{
-//			perror("ftruncate");
-//			unlink_and_exit(argv[1]);
-//		}
-//
-//	/* get a pointer to the shared memory */
-//
-//	ptr = mmap(0, sizeof(shmem_t), PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-//	if (ptr == MAP_FAILED)
-//	{
-//		perror("mmap");
-//		unlink_and_exit(argv[1]);
-//	}
-//
-//	/* don't need fd anymore, so close it */
-//	close(fd);
-//
-//	/* now set up our mutex and condvar for the synchronization and notification */
-//
-//	pthread_mutexattr_init(&mutex_attr);
-//	pthread_mutexattr_setpshared(&mutex_attr, PTHREAD_PROCESS_SHARED);
-//	ret = pthread_mutex_init(&ptr->mutex, &mutex_attr);
-//	if (ret != EOK)
-//			{
-//				perror("pthread_mutex_init");
-//				unlink_and_exit(argv[1]);
-//			}
-//
-//	pthread_condattr_init(&cond_attr);
-//	pthread_condattr_setpshared(&cond_attr, PTHREAD_PROCESS_SHARED);
-//	ret = pthread_cond_init(&ptr->cond, &cond_attr);
-//	if (ret != EOK)
-//	{
-//			perror("pthread_cond_init");
-//			unlink_and_exit(argv[1]);
-//	}
-//
-//	printf("Shared memory created and init_flag set to let users know shared memory object is usable.\n");
-//
-//	while (1) {
-//		sleep(1);
-//
-//		/* lock the mutex because we're about to update shared data */
-//		ret = pthread_mutex_lock(&ptr->mutex);
-//		if (ret != EOK)
-//		{
-//			perror("pthread_mutex_lock");
-//			unlink_and_exit(argv[1]);
-//		}
-//
-//		ptr->data_version++;
-//		snprintf(ptr->text, sizeof(ptr->text), "data update: %lu", ptr->data_version);
-//
-//		/* finished accessing shared data, unlock the mutex */
-//		ret = pthread_mutex_unlock(&ptr->mutex);
-//		if (ret != EOK)
-//		{
-//			perror("pthread_mutex_unlock");
-//			unlink_and_exit(argv[1]);
-//		}
-//
-//		/* wake up any readers that may be waiting */
-//		ret = pthread_cond_broadcast(&ptr->cond);
-//		if (ret != EOK)
-//		{
-//			perror("pthread_cond_broadcast");
-//			unlink_and_exit(argv[1]);
-//		}
-//	}
-//
-//	/* we'll never exit the above loop but here's the cleanup anyway */
-//
-//		/* unmap() not actually needed on termination as all memory mappings are freed on process termination */
-//		if (munmap(ptr, sizeof(shmem_t)) == -1)
-//		{
-//			perror("munmap");
-//		}
-//
-//		/* but the name must be removed */
-//		if (shm_unlink(argv[1]) == -1)
-//		{
-//			perror("shm_unlink");
-//		}
-//
-//		exit(EXIT_SUCCESS);
-//
-//}
-//
-//void unlink_and_exit(char *name)
-//{
-//	(void)shm_unlink(name);
-//	exit(EXIT_FAILURE);
-//}
 
 void save_file(char* data,  int file,long int data_size)
 {
