@@ -1,5 +1,5 @@
-#ifndef _IOV_SERVER_H_
-#define _IOV_SERVER_H_
+#ifndef  SERVER_H_
+#define SERVER_H_
 
 #include <sys/iomsg.h>
 #include <pthread.h>
@@ -30,4 +30,4 @@ typedef enum {
 	MESSAGE, MSG_QUEUE, PIPE, SHM, NONE
 } protocol_t;
 
-#endif //_IOV_SERVER_H_
+#endif //_SERVER_H_
