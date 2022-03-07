@@ -379,7 +379,7 @@ void pipe_ipc_sendfile(char* filename){
 
 
 	// FIFO file path
-	char * myfifo = "myfifo";
+	char * myfifo = FIFO_NAME;
 
 
 	char *buffer = (char*)malloc(file_size);
@@ -394,9 +394,6 @@ void pipe_ipc_sendfile(char* filename){
 			close(fd);
 			exit(EXIT_FAILURE);
 		}
-
-
-	char *buffer2 = (char*)malloc(file_size);
 
 
 	close(fd);
@@ -415,6 +412,14 @@ void pipe_ipc_sendfile(char* filename){
 
 		check_fifo = open(myfifo, O_WRONLY);
 
+			if(check_fifo==-1)
+		 	{
+		 		perror("openfifo");
+				 free(buffer);
+		 		exit(EXIT_FAILURE);
+
+		 	}
+
 		 printf("pipeopne\n");
 		 sprintf(arr1, "%ld", file_size);
 		 printf("the array %s\n",arr1);
@@ -425,7 +430,7 @@ void pipe_ipc_sendfile(char* filename){
 		 // and close it
 		 write(check_fifo, buffer, file_size);
 		 close(check_fifo);
-
+		 free(buffer);
 		 printf("Successfully sent");
 
 }

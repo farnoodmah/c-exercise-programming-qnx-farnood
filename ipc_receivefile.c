@@ -438,16 +438,32 @@ void pipe_ipc_receive(char* file_name){
 		 	}
 
 	//FIFO (PIPE) directory
-	char * myfifo = "myfifo";
+	char * myfifo = FIFO_NAME;
 
 	// Creating the named file(FIFO)
 	// mkfifo(<pathname>,<permission>)
-	 mkfifo(myfifo, 0666);
+	ret = mkfifo(myfifo, 0666);
+	if(ret==-1)
+		 	{
+		 		perror("mkfifo");
+				 close(fh);
+		 		exit(EXIT_FAILURE);
+
+		 	}
+
 
 	 // open the FIFO in read only
 	 fifo = open(myfifo,O_RDONLY);
+
+	if(fifo==-1)
+		 	{
+		 		perror("openfifo");
+				close(fh);
+		 		exit(EXIT_FAILURE);
+
+		 	}
+
 	 int read_bytes;
-	 sleep(10);
 	 while (ret ==-1){
 		 printf("waiting for the connection ...\n");
 		 printf("getting the size of the receiving file\n");
