@@ -29,7 +29,6 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <sys/netmgr.h>     // #define for ND_LOCAL_NODE is in here
-#include "iov_server.h"
 #include <sys/iofunc.h>
 #include <sys/dispatch.h>
 #include <sys/stat.h>
@@ -38,8 +37,11 @@
 #include <unistd.h>
 #include <mqueue.h>
 #include <time.h>
+#include <process.h>
+#include <sys/mman.h>
 
-#include "iov_server.h"
+#include "server.h"
+#include "server.h"
 
 typedef union
 {
@@ -49,7 +51,13 @@ typedef union
 } msg_buf_t;
 
 
-
+//typedef union
+//{
+//	uint16_t type;
+//	struct _pulse pulse;
+//	get_shmem_msg_t get_shmem;
+//	changed_shmem_msg_t changed_shmem;
+//} shm_buf_t;
 
 static struct option longopts[] =
 
@@ -63,6 +71,7 @@ static struct option longopts[] =
 			{ 0, 0, 0, 0 }
 	};
 
+
 char *filename;
 msg_buf_t filemsg;
 int file;
@@ -70,9 +79,10 @@ int file;
 
 void messages_ipc_receive(char* file_name);
 void msg_queue_ipc_receive(char* file_name);
+//void msg_shm_ipc_receive(char* file_name);
+void pipe_ipc_receive(char* file_name);
 
-
-void save_file(char* data, int file_name,long int data_size);
+void save_file(char* data, int file,long int data_size);
 
 int main(int argc, char **argv){
 
@@ -118,6 +128,7 @@ int main(int argc, char **argv){
 				filename=optarg;
 				printf("file name: \"%s\"\n",filename);
 				check_file = 1;
+				pipe_ipc_receive(filename);
 				break;
 
 			case 'm':
@@ -407,10 +418,91 @@ void msg_queue_ipc_receive(char* file_name){
 	   exit(0);
 }
 
-void save_file(char* data,  int file_name,long int data_size)
+void pipe_ipc_receive(char* file_name){
+
+
+	int fh;
+	int fifo;
+	char  receive_size[80];
+	long int file_size;
+	char * ptr_end;
+	int ret = -1;
+	//opening an empty file to write and save the data
+	fh = open(file_name, O_WRONLY | O_CREAT, 0644);
+
+	if(fh==-1)
+		 	{
+		 		perror("open");
+		 		exit(EXIT_FAILURE);
+
+		 	}
+
+	//FIFO (PIPE) directory
+	char * myfifo = FIFO_NAME;
+
+	// Creating the named file(FIFO)
+	// mkfifo(<pathname>,<permission>)
+	ret = mkfifo(myfifo, 0666);
+	if(ret==-1)
+		 	{
+		 		perror("mkfifo");
+				 close(fh);
+		 		exit(EXIT_FAILURE);
+
+		 	}
+
+
+	 // open the FIFO in read only
+	 fifo = open(myfifo,O_RDONLY);
+
+	if(fifo==-1)
+		 	{
+		 		perror("openfifo");
+				close(fh);
+		 		exit(EXIT_FAILURE);
+
+		 	}
+
+	 int read_bytes;
+	 while (ret ==-1){
+		 printf("waiting for the connection ...\n");
+		 printf("getting the size of the receiving file\n");
+		 ret = read(fifo,receive_size,80);
+	 }
+
+	 printf("read the data successfully \n");
+
+	 // changing the received size of the file from string to long int
+	 file_size = strtol (receive_size,&ptr_end,10);
+
+	 printf("the size of the file is %ld \n",file_size);
+
+	 char *buffer = (char*)malloc(file_size);
+	 read(fifo, buffer, file_size);
+
+	 // writing the received the data
+	 save_file(buffer,fh,file_size);
+
+	 free(buffer);
+	 ret = close(fh);
+	 	if (ret !=0){
+	 			 perror ("fclose error");
+	 			free(buffer);
+	 		exit(EXIT_FAILURE);
+	 			  }
+	 close(fifo);
+	 remove(myfifo);
+
+
+
+}
+
+
+
+void save_file(char* data,  int file,long int data_size)
 {
 
 	//write the file
-	write(file_name,data,data_size);
+	write(file,data,data_size);
 
 }

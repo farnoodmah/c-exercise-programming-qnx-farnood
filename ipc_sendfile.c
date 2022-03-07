@@ -27,7 +27,6 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <sys/netmgr.h>     // #define for ND_LOCAL_NODE is in here
-#include "iov_server.h"
 #include <sys/iofunc.h>
 #include <sys/dispatch.h>
 #include <sys/stat.h>
@@ -36,6 +35,7 @@
 #include <unistd.h>
 #include <mqueue.h>
 #include <time.h>
+#include "server.h"
 
 
  static struct option longopts[] =
@@ -54,6 +54,10 @@ char *filename;
 
 void message_ipc_sendfile(char* filename);
 void msg_queue_ipc_sendfile(char* filename);
+//void shm_ipc_sendfile(char* filename);
+void pipe_ipc_sendfile(char* filename);
+
+
 long int file_size_handler(char* file_name);
 int main(int argc, char **argv){
 
@@ -101,6 +105,7 @@ int main(int argc, char **argv){
 							filename = optarg;
 							printf("File name: \"%s\"\n",filename);
 							check_file = 1;
+							pipe_ipc_sendfile(filename);
 
 							break;
 
@@ -354,6 +359,79 @@ void msg_queue_ipc_sendfile(char* filename){
 	 	}
 
 	 	exit(EXIT_FAILURE);
+
+}
+
+
+void pipe_ipc_sendfile(char* filename){
+	int pipefd;
+	long int file_size = file_size_handler(filename);
+	int fd;
+	fd = open(filename, O_RDONLY| O_LARGEFILE, S_IRUSR | S_IWUSR );
+	if(fd==-1)
+		 	{
+		 		perror("open");
+		 		exit(EXIT_FAILURE);
+
+		 	}
+	int ret;
+
+
+
+	// FIFO file path
+	char * myfifo = FIFO_NAME;
+
+
+	char *buffer = (char*)malloc(file_size);
+	ret = read(fd,buffer, file_size);
+
+	int check_fifo = -1;
+		if( ret	== -1 )
+		{
+
+			perror( "Error reading\n" );
+			free(buffer);
+			close(fd);
+			exit(EXIT_FAILURE);
+		}
+
+
+	close(fd);
+	ret = close(fd);
+	if (ret !=0){
+				  perror ("fclose error");
+				  free(buffer);
+				  exit(EXIT_FAILURE);
+			  }
+
+	//for saving the size of the file
+	char arr1[80];
+
+
+	// Open FIFO for write only
+
+		check_fifo = open(myfifo, O_WRONLY);
+
+			if(check_fifo==-1)
+		 	{
+		 		perror("openfifo");
+				 free(buffer);
+		 		exit(EXIT_FAILURE);
+
+		 	}
+
+		 printf("pipeopne\n");
+		 sprintf(arr1, "%ld", file_size);
+		 printf("the array %s\n",arr1);
+		 //write the size first
+		 write(check_fifo,arr1,80);
+
+	     // Write the input arr2ing on FIFO
+		 // and close it
+		 write(check_fifo, buffer, file_size);
+		 close(check_fifo);
+		 free(buffer);
+		 printf("Successfully sent");
 
 }
 

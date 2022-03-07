@@ -23,5 +23,5 @@ all:	$(BINS)
 
 # dependencies
 
-iov_server.o: ipc_receivefile.c iov_server.h
-iov_client.o: ipc_sendfile.c iov_server.h
+ipc_receivefile.o: ipc_receivefile.c server.h
+ipc_sendfile.o: ipc_sendfile.c server.h
