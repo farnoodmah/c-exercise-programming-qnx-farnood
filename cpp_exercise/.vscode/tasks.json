@@ -1,0 +1,34 @@
+// Available variables which can be used inside of strings.
+// ${workspaceRoot}: the root folder of the team        
+// ${file}: the current opened file                     
+// ${fileBasename}: the current opened file's basename 
+// ${fileDirname}: the current opened file's dirname    
+// ${fileExtname}: the current opened file's extension  
+// ${cwd}: the current working directory of the spawned process
+
+
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build Example (Debug)",
+      "type": "shell",
+      "command": "bazel build //src/main:transfer -c dbg " //--spawn_strategy=standalone" 
+      ,
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+
+      {
+        "label": "Transfer Test (Debug)",
+        "type": "shell",
+        "command": "bazel test  tests:transfer_test -c dbg" 
+        ,
+        "group": {
+          "kind": "build",
+          "isDefault": true
+        },
+    }
+  ]
+}
