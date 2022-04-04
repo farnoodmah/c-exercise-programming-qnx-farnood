@@ -19,7 +19,7 @@
             "name": "gtest",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/bazel-bin/tests/transfer_test.runfiles/__main__/tests/transfer_test",
+            "program": "${workspaceFolder}/bazel-bin/tests/linuxipc_test.runfiles/__main__/tests/linuxipc_test",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

@@ -1,0 +1,9 @@
+- [x] FileHandler Class Implementation
+- [x] IPC Abstract Class Implementation
+- [x] IPCSender Implementation
+- [x] IPCReceiver Implementation
+- [x] Pipe Sender Implementation
+- [x] Pipe Receiver Implementation
+- [ ] SHM Abstract Implementation
+- [ ] SHM Sender Implementation
+- [ ] SHM Receiver Implementation

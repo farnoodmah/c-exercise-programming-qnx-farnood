@@ -1,5 +1,5 @@
-#ifndef TRANSFERLIB_H
-#define TRANSFERLIB_H
+#ifndef LINUXIPCLIB_H
+#define LINUXIPCLIB_H
 
 #include <map>
 #include <string>
@@ -13,6 +13,8 @@
 #include <sys/types.h>
 #include <vector>
 #include <getopt.h>
+#include "ipcpipelib.h"
+
 
 namespace ipcprt {
 
@@ -24,32 +26,6 @@ namespace ipcprt {
     };
 }
 
-#define PIPE_FIFO_NAME "/tmp/myfifo"
-
-/**
- *      FileHandler Class
- */
-class FileHandler{
-private:
-const std::string _file_name; //input file name
-uint8_t _fd;  //file desriptor
-std::string _file_input; // the data that should be written into the file
-size_t _write_size; // the size of data that should be written
-size_t _read_size; // the size of data that should be read
-size_t _file_size; // the size of the file
-std::string _file_output; // the read data from file
-
-const mode_t  _mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH; // mode for opening the file
-
-public:
-FileHandler(const std::string & filename);
-~FileHandler();
-void createFile();
-void writeFile(std::vector<unsigned char> & file_input, size_t write_size);
-std::vector<unsigned char> readFile(size_t read_size);
-size_t getSize();
-  
-};
  
 
 /**
@@ -103,44 +79,6 @@ class IPCReceiver: public IPC{
 };
 
 
-class PipeSender{
-    private:
-    const std::string _file_name;
-    size_t _file_size;
-    const char * _myfifo = PIPE_FIFO_NAME;
-    int ret;
-    std::vector<unsigned char> _read_file;
-    int _check_fifo = -1;
-    
-    uint16_t fd;
-    PipeSender();
-    
-
-    public:
-    PipeSender(const std::string & filename);
-    ~PipeSender(){};
-
-};
-
-
-class PipeReceiver{
-    private:
-    const std::string _file_name;
-    size_t _file_size;
-    const char * _myfifo = PIPE_FIFO_NAME;
-    int ret;
-    std::string _read_file;
-    int _check_fifo = -1;
-    
-    uint16_t fd;
-    PipeReceiver();
-    
-
-    public:
-    PipeReceiver(const std::string & filename);
-    ~PipeReceiver(){};
-
-};
 
 class CommandOption{
     private:
@@ -158,7 +96,7 @@ class CommandOption{
 
     CommandOption();
     
-    std::string printHelp();
+    void printHelp();
     
     public:
    
