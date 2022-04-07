@@ -8,6 +8,7 @@ cc_test(
         "//src/lib:LINUXIPCLib",
          "//src/lib:FILEHANDLERLib",
           "//src/lib:IPCPIPELib",
+          "//src/lib:IPCMSGQLib",
           "//src/lib:IPCEXCEPTIONLib",
         "@googletest//:gtest_main",
     ],

@@ -41,6 +41,20 @@ void IPCSender::ipcpipe(const std::string & filename){
    }
 }
 
+/**
+ * @brief IPCSender MsgQueue Protocol
+ * 
+ * 
+ * 
+ */
+
+
+void IPCSender::ipcmsgqueue(const std::string & filename){
+     
+      MsgQueueSender msgqs(filename);
+
+}
+
 
 /**
  * @brief IPCSender Constructor for Choosing the one of the protocols
@@ -56,10 +70,12 @@ IPCSender::IPCSender(const std::string & filename, const std::string  & protocol
         ipcpipe(_file_name);
         break;
     
+    case ipcprt::Protocol::msgqueue:
+        ipcmsgqueue(_file_name);
+        break;
     default:
-       std::cout<<"IPCReceiver ERROR:UNKNOWN IPC PROTOCOL"<<std::endl;
-       exit(EXIT_FAILURE);
-       break;
+        throw IPCException("IPCReceiver ERROR:UNKNOWN IPC PROTOCOL");
+        break;
     }
 }
 
@@ -87,6 +103,16 @@ void IPCReceiver::ipcpipe(const std::string & filename){
 }
 
 /**
+ * @brief IPCReceiver MsgQueue Protocol
+ * */
+
+void IPCReceiver::ipcmsgqueue(const std::string & filename){
+
+  MsgQueueReceiver msgqr(filename);
+
+}
+
+/**
  * @brief IPCReceiver Choosing Between the Protocols
  * */
 
@@ -96,10 +122,11 @@ IPCReceiver::IPCReceiver(const std::string & filename, const std::string  & prot
     case ipcprt::Protocol::pipe:
         ipcpipe(_file_name);
         break;
-    
+    case ipcprt::Protocol::msgqueue:
+        ipcmsgqueue(_file_name);
+        break;
     default:
-        std::cout<<"IPCReceiver ERROR:UNKNOWN IPC PROTOCOL"<<std::endl;
-        exit(EXIT_FAILURE);
+        throw IPCException("IPCReceiver ERROR:UNKNOWN IPC PROTOCOL");
         break;
     }
 
@@ -139,7 +166,7 @@ CommandOption::CommandOption(const std::string & program, int argc, char *argv[]
       _longindex = 0;
       option longopts[]= {
 			{"help", no_argument, NULL, 'h'},
-			{"queue", no_argument, NULL, 'q'},
+			{"msgqueue", no_argument, NULL, 'q'},
 			{"pipe", no_argument, NULL, 'p'},
 			{"shm", required_argument, NULL, 's'},
 			{"file", required_argument, NULL, 'f'},
@@ -161,19 +188,17 @@ CommandOption::CommandOption(const std::string & program, int argc, char *argv[]
                _output = "pipe";
                break;  
               case 'q':
-              throw IPCException("unrecognized command. please use \"--help\" for guide.\n");
-               break;
+              _output = "msgqueue";
+               break; 
               case 's':
               throw IPCException("unrecognized command. please use \"--help\" for guide.\n");
                 break;
-                case 'f':
+               case 'f':
                 _filename = optarg;
                 if ((_filename.size() < 1) || (_filename.size() >40) )
                 {
                   throw IPCException("unrecognized command. the file name should be between 1 and 30 letters");
                 }
-                
-                  
 
                  break;
               case ':':
@@ -228,8 +253,8 @@ void  CommandOption::printHelp(){
     std::cout<<"\n\n    usage: "<< _program << "[--help] [--messages --file <path>] [--queue --file <path>][--pipe --file <path>]\n		             [shm --file <path> <buffer_size_in_kb>]\n\n\n" <<
 					   _program << " is used to "<< ((_program == _ipcreceiver) ? "receive" : "send") << " files between a client "<< "(" + _ipcsender + ")" << " and server " << "(" + _ipcreceiver + ")" <<  " via different IPC methods (queue, pipe, and shm).\n" <<
 						"Primary commands:\n\n" <<
-            "--pipe        For "<<((_program == _ipcreceiver) ? "receiving" : "sending") <<"  files with the pipe option. (*not implemented)\n" <<
-						"--queue       For "<<((_program == _ipcreceiver) ? "receiving" : "sending") <<" files with the message queue option. (*not implemented)\n" <<
+            "--pipe        For "<<((_program == _ipcreceiver) ? "receiving" : "sending") <<"  files with the pipe option.\n" <<
+						"--queue       For "<<((_program == _ipcreceiver) ? "receiving" : "sending") <<" files with the message queue option.\n" <<
 						"--shm         For "<<((_program == _ipcreceiver) ? "receiving" : "sending") <<"  files by using a shared memory buffer. (*not implemented)\n\n" <<
 						"--help        lists available commands and guides.\n\n";
    

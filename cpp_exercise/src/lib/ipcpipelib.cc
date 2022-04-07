@@ -139,10 +139,11 @@ PipeReceiver::PipeReceiver(const std::string & filename): _file_name(filename){
              throw IPCException("IPCReceiver ERROR: Cannot read the file");
            }
 
-           for(int i = 0; i <2 ;i++){
-            _readbuffer.push_back(mybuffer[i]);
-          }
-
+          //  for(int i = 0; i <2 ;i++){
+          //   _readbuffer.push_back(mybuffer[i]);
+          // }
+            _readbuffer.insert(_readbuffer.end(),std::begin(mybuffer), std::end(mybuffer));
+          
           
          }
 

@@ -1,7 +1,7 @@
 #include "src/lib/linuxipclib.h"
 #include "src/lib/filehandlerlib.h"
 #include "src/lib/ipcpipelib.h"
-
+#include "src/lib/ipcmsgqlib.h"
 #include <map>
 #include <vector>
 #include<thread>
@@ -158,6 +158,19 @@ TEST(CommandOptionTests, GivingOnlyFileAsArgument){
 }
 
 
+TEST(CommandOptionTests, GettingMsgQueueProtocol){
+  
+  char * arggv[4] = {"","--msgqueue","--file","test.txt"};
+ 
+
+  CommandOption co("ipcsender",4,arggv);
+  std::vector<std::string> outputs = co.getCommand();
+  ASSERT_EQ(outputs[0],"test.txt");
+  ASSERT_EQ(outputs[1],"msgqueue");
+
+}
+
+
 /**
  * IPCException
  * 
@@ -181,3 +194,24 @@ TEST_F(IPCExceptionTests, CatchingException){
      ASSERT_EQ("Test Error",e.what());
    }
  }
+
+
+/**
+ * MessageQueueSender
+ * 
+ */
+
+
+// TEST(MessageQueueSenderTests, PrintingFileName){
+//   MsgQueueSender ipcq("senderfilename");
+// }
+
+
+// /**
+//  * MessageQueueReceiver
+//  * 
+//  */
+
+// TEST(MessageQueueReceiverTests, PrintingFileName){
+//   MsgQueueReceiver ipcq("receiverfiilename");
+// }

@@ -1,13 +1,11 @@
-#ifndef IPCPIPE_H
-#define IPCPIPE_H
+#ifndef IPCPIPELIB_H
+#define IPCPIPELIB_H
 
 #include "filehandlerlib.h"
 #include "ipcexceptionlib.h"
-#include <map>
 #include <string>
 #include <vector>
 #include <iostream>
-#include <map>
 #include <unistd.h>
 #include <sys/stat.h>
 #include <fcntl.h>
