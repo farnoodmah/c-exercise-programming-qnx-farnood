@@ -1,4 +1,6 @@
 #include "ipcpipelib.h"
+#include "ipcexceptionlib.h"
+
 /***
  * PipeSender 
  * **/

@@ -9,6 +9,7 @@ cc_test(
          "//src/lib:FILEHANDLERLib",
           "//src/lib:IPCPIPELib",
           "//src/lib:IPCMSGQLib",
+           "//src/lib:IPCSHMLib",
           "//src/lib:IPCEXCEPTIONLib",
         "@googletest//:gtest_main",
     ],

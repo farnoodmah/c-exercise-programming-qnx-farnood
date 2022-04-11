@@ -1,7 +1,6 @@
 #include "src/lib/linuxipclib.h"
-#include "src/lib/filehandlerlib.h"
-#include "src/lib/ipcpipelib.h"
-#include "src/lib/ipcmsgqlib.h"
+#include "src/lib/ipcexceptionlib.h"
+//#include "src/lib/filehandlerlib.h"
 #include <map>
 #include <vector>
 #include<thread>
@@ -167,6 +166,18 @@ TEST(CommandOptionTests, GettingMsgQueueProtocol){
   std::vector<std::string> outputs = co.getCommand();
   ASSERT_EQ(outputs[0],"test.txt");
   ASSERT_EQ(outputs[1],"msgqueue");
+
+}
+
+TEST(CommandOptionTests, GettingSHMProtocol){
+  
+  char * arggv[4] = {"","--shm","--file","test.txt"};
+ 
+
+  CommandOption co("ipcsender",4,arggv);
+  std::vector<std::string> outputs = co.getCommand();
+  ASSERT_EQ(outputs[0],"test.txt");
+  ASSERT_EQ(outputs[1],"shm");
 
 }
 

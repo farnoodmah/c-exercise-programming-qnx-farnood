@@ -2,7 +2,6 @@
 #define IPCPIPELIB_H
 
 #include "filehandlerlib.h"
-#include "ipcexceptionlib.h"
 #include <string>
 #include <vector>
 #include <iostream>

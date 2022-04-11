@@ -1,6 +1,6 @@
 #include <iostream>
 #include "src/lib/linuxipclib.h"
-
+#include "src/lib/ipcexceptionlib.h"
 
 
 int main(int argc,char *argv[]) {
