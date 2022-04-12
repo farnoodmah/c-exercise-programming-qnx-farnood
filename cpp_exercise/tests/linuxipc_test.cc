@@ -1,13 +1,11 @@
 #include "src/lib/linuxipclib.h"
 #include "src/lib/filehandlerlib.h"
-#include "src/lib/ipcpipelib.h"
-#include "src/lib/ipcmsgqlib.h"
+#include "src/lib/ipcexceptionlib.h"
 #include <map>
 #include <vector>
 #include<thread>
 
 #include "gtest/gtest.h"
-
 
 
 class FileHandlerTests : public ::testing::Test{
@@ -18,6 +16,7 @@ class FileHandlerTests : public ::testing::Test{
       FileHandler nonexFile{"thisfiledoesnotexist.txt"};
       FileHandler txtFile{"testfile.txt"};
       FileHandler pdfFile{"pdftestfile.pdf"};
+      FileHandler bigFile{"QNX.zip"};
       std::string samplestring = "Test Data";
       std::vector<unsigned char> samplevec;
       
@@ -26,7 +25,7 @@ class FileHandlerTests : public ::testing::Test{
 
 
 
-  TEST_F(FileHandlerTests, ReadingFromNoExistingFile){
+  TEST_F(FileHandlerTests, ReadingFromNotExistingFile){
 
     remove("thisfiledoesnotexist.txt");
     std::string exception;
@@ -36,7 +35,7 @@ class FileHandlerTests : public ::testing::Test{
        
        }catch(IPCException & e){
           exception = e.what();
-          ASSERT_EQ("FileHandler ERROR: Cannot Close the File Correctly", exception);
+          ASSERT_EQ("FileHandler ERROR: Cannot Open the File Correctly", exception);
           
        }
 
@@ -45,10 +44,9 @@ class FileHandlerTests : public ::testing::Test{
 
    TEST_F(FileHandlerTests, GettingTheCorrectSize){
      samplevec.insert(samplevec.begin(), samplestring.begin(), samplestring.end());
-    try{
-        txtFile.createFile();
-        txtFile.writeFile(samplevec,samplevec.size());
-    } catch(IPCException & e){}
+    
+      txtFile.createFile();
+       txtFile.writeFile(samplevec,samplevec.size());
          
        ASSERT_EQ(txtFile.getSize(), samplevec.size() );
 
@@ -58,16 +56,17 @@ class FileHandlerTests : public ::testing::Test{
    TEST_F(FileHandlerTests, ReadingAndWritingTheCorrectData){
      samplevec.insert(samplevec.begin(), samplestring.begin(), samplestring.end());
      std::vector<unsigned char> testvec;
-    try{
+  
+    
         txtFile.createFile();
+
         txtFile.writeFile(samplevec,samplevec.size());
-        testvec = txtFile.readFile(samplevec.size());
-    } catch(IPCException & e){}
+        testvec = txtFile.readFile(txtFile.getSize());
+        
       remove("testfile.txt"); 
        ASSERT_EQ(testvec, samplevec );
 
   }
-
 
 
    TEST_F(FileHandlerTests, RemovingFile){
@@ -77,12 +76,12 @@ class FileHandlerTests : public ::testing::Test{
     std::vector<unsigned char> testvec;
     try{
         txtFile.createFile();
-        txtFile.writeFile(samplevec,samplevec.size());
+        txtFile.writeFile(samplevec,samplevec.size()+1);
         txtFile.removeFile();
         testvec = txtFile.readFile(samplevec.size());
     } catch(IPCException & e){
           exception = e.what();
-          ASSERT_EQ("FileHandler ERROR: Cannot Close the File Correctly", exception);
+          ASSERT_EQ("FileHandler ERROR: Cannot Open the File Correctly", exception);
     }
        
     }

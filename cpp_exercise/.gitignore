@@ -7,3 +7,4 @@
 /bazel-*
 doc/*.ufx
 doc/testcase_doc.md
+/.vscode

@@ -4,7 +4,6 @@
 #include "filehandlerlib.h"
 #include <mqueue.h>
 #include <sys/ipc.h>
-#include <sys/msg.h>
 #include <string>
 #include <vector>
 #include <iostream>
@@ -13,25 +12,16 @@
 #include <fcntl.h>
 #include <cstring>
 #include <sys/types.h>
-#include <vector>
-#include <getopt.h>
 #include <errno.h>
-
-#include <unistd.h>
-#include <sys/types.h>
-#include <stdio.h>
-#include <sys/time.h>
-#include <sys/resource.h>
-#include <time.h>
-#include <sched.h>
-#include <sys/mman.h>
-#include <sys/fcntl.h>
 #include <signal.h>
-#include <mqueue.h>
-#include <errno.h>
+#include <sys/time.h>
 #include <iterator>
+#include <time.h>
+#include <sys/resource.h>
+#include <sys/mman.h>
 
-#define P4IPC_MSGSIZE 100
+
+#define MSG_QUEUE_NAME "/mymsgqueue"
 class MsgQueueSender{
 
 
@@ -39,9 +29,16 @@ class MsgQueueSender{
     const std::string _file_name;
     int ret;
     std::vector<unsigned char> _read_file;
+    mqd_t _msg_queue;
+    struct mq_attr _attrs;
+    long unsigned int _msg_queue_msgsize = 4096;
+    long unsigned int _msg_queue_maxnummsg = 10;
+    std::string _msg_queue_name = MSG_QUEUE_NAME;
+    int _check_empty = -1;
+    unsigned int _priority;
+
     MsgQueueSender();
-    key_t _private_key;
-    int _msgid;
+  
 
     public:
     MsgQueueSender(const std::string & filename);
@@ -54,9 +51,16 @@ class MsgQueueReceiver{
     const std::string _file_name;
     int ret;
     std::vector<unsigned char> _read_file;
+    int _receive_size;
+    mqd_t _msg_queue;
+    struct mq_attr _attrs;
+    unsigned int _priority;
+    long unsigned int _msg_queue_msgsize = 4096;
+    long unsigned int _msg_queue_maxnummsg = 10;
+    int _check_empty = 0;
+    std::string _msg_queue_name = MSG_QUEUE_NAME;
+    struct   timespec _ts;
     MsgQueueReceiver();
-    key_t _private_key;
-    int _msgid;
     
     public:
     MsgQueueReceiver(const std::string & filename);
