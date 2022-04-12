@@ -8,7 +8,6 @@
 #include "gtest/gtest.h"
 
 
-
 class FileHandlerTests : public ::testing::Test{
 
       public:
@@ -29,26 +28,16 @@ class FileHandlerTests : public ::testing::Test{
   TEST_F(FileHandlerTests, ReadingFromNotExistingFile){
 
     remove("thisfiledoesnotexist.txt");
-    std::string exception;
 
-     try{
-       nonexFile.readFile(10);
-       
-       }catch(IPCException & e){
-          exception = e.what();
-          ASSERT_EQ("FileHandler ERROR: Cannot Close the File Correctly", exception);
-          
-       }
-
+    ASSERT_THROW(nonexFile.readFile(10), IPCException);
     
   }
 
    TEST_F(FileHandlerTests, GettingTheCorrectSize){
      samplevec.insert(samplevec.begin(), samplestring.begin(), samplestring.end());
-    try{
-        txtFile.createFile();
-        txtFile.writeFile(samplevec,samplevec.size());
-    } catch(IPCException & e){}
+    
+      txtFile.createFile();
+       txtFile.writeFile(samplevec,samplevec.size());
          
        ASSERT_EQ(txtFile.getSize(), samplevec.size() );
 
@@ -59,27 +48,14 @@ class FileHandlerTests : public ::testing::Test{
      samplevec.insert(samplevec.begin(), samplestring.begin(), samplestring.end());
      std::vector<unsigned char> testvec;
   
-    try{
+    
         txtFile.createFile();
 
         txtFile.writeFile(samplevec,samplevec.size());
-        testvec = txtFile.readFile(samplevec.size());
-    } catch(IPCException & e){}
+        testvec = txtFile.readFile(txtFile.getSize());
+        
       remove("testfile.txt"); 
        ASSERT_EQ(testvec, samplevec );
-
-  }
-
-TEST_F(FileHandlerTests, ReadingBigFileAndWriting){
-    FileHandler fhpd("new.zip");
-    std::vector<unsigned char> testvec;
-    try{
-      fhpd.createFile();
-        
-      testvec = bigFile.readFile(bigFile.getSize());
-      fhpd.writeFile(testvec,testvec.size());
-    } catch(IPCException & e){}
-      
 
   }
 
@@ -87,17 +63,14 @@ TEST_F(FileHandlerTests, ReadingBigFileAndWriting){
    TEST_F(FileHandlerTests, RemovingFile){
 
     samplevec.insert(samplevec.begin(), samplestring.begin(), samplestring.end());
-    std::string exception;
+    
     std::vector<unsigned char> testvec;
-    try{
+    
         txtFile.createFile();
-        txtFile.writeFile(samplevec,samplevec.size());
+        txtFile.writeFile(samplevec,samplevec.size()+1);
         txtFile.removeFile();
-        testvec = txtFile.readFile(samplevec.size());
-    } catch(IPCException & e){
-          exception = e.what();
-          ASSERT_EQ("FileHandler ERROR: Cannot Close the File Correctly", exception);
-    }
+        
+    ASSERT_THROW(txtFile.readFile(samplevec.size()), IPCException);
        
     }
 
@@ -113,10 +86,12 @@ TEST_F(FileHandlerTests, ReadingBigFileAndWriting){
 
 TEST(CommandOptionTests, GettingProtocolandFileName){
   
-  char * arggv[4] = {"","--pipe","--file","test.txt"};
+  
  
+  char cmdlineTemp[][4096] = {"","--pipe","--file","test.txt"};
+  char *argv[] = {cmdlineTemp[0], cmdlineTemp[1],cmdlineTemp[2],cmdlineTemp[3], NULL};
 
-  CommandOption co("ipcsender",4,arggv);
+  CommandOption co("ipcsender",4,argv);
   std::vector<std::string> outputs = co.getCommand();
   ASSERT_EQ(outputs[0],"test.txt");
   ASSERT_EQ(outputs[1],"pipe");
@@ -125,50 +100,38 @@ TEST(CommandOptionTests, GettingProtocolandFileName){
 
 TEST(CommandOptionTests, GivingOnlyProtocolAsArgument){
   
-  char * arggv[2] = {"","--pipe"};
-  std::string exception;
- try{
-    CommandOption co("ipcsender",2,arggv);
-  std::vector<std::string> outputs = co.getCommand();
 
- } catch(IPCException & e){
-   exception = e.what();
-   
-   ASSERT_EQ("unrecognized command. filename and protocol should be determined. please use \"--help\" for guide.\n",exception);
- }  
+  char cmdlineTemp[][4096] = {"","--pipe"};
+  char *argv[] = {cmdlineTemp[0], cmdlineTemp[1], NULL};
+
+ 
+    CommandOption co("ipcsender",2,argv);
   
+ASSERT_THROW(co.getCommand(), IPCException);
+ 
 }
 
 
 TEST(CommandOptionTests, GivingWrongCommand){
   
-  char * arggv[2] = {"","--wrongcommand"};
-  std::string exception;
- try{
-    CommandOption co("ipcsender",2,arggv);
-  std::vector<std::string> outputs = co.getCommand();
-
- } catch(IPCException & e){
-   exception = e.what();
-   ASSERT_EQ("unrecognized command. please use \"--help\" for guide.\n",exception);
- }  
+ 
+  char cmdlineTemp[][4096] = {"","--wrongcommand"};
+  char *argv[] = {cmdlineTemp[0], cmdlineTemp[1], NULL};
+ASSERT_THROW(CommandOption co("ipcsender",2,argv), IPCException);
   
 }
 
 TEST(CommandOptionTests, GivingOnlyFileAsArgument){
-  
-  char * arggv[3] = {"","--file","test.txt"};
-  std::string exception;
- try{
-    CommandOption co("ipcsender",3,arggv);
-  std::vector<std::string> outputs = co.getCommand();
 
- } catch(IPCException & e){
-   exception = e.what();
-   
-   ASSERT_EQ("unrecognized command. filename and protocol should be determined. please use \"--help\" for guide.\n",exception);
- }  
+  char cmdlineTemp[][4096] = {"","--file","test.txt"};
+  char *argv[] = {cmdlineTemp[0], cmdlineTemp[1], cmdlineTemp[2], NULL};
   
+
+
+    CommandOption co("ipcsender",3,argv);
+  
+  
+ASSERT_THROW(co.getCommand(), IPCException);
 }
 
 
@@ -189,9 +152,5 @@ class IPCExceptionTests : public ::testing::Test{
  };
 
 TEST_F(IPCExceptionTests, CatchingException){
-   try{
-    broken();
-       }catch(IPCException & e){
-     ASSERT_EQ("Test Error",e.what());
-   }
+   ASSERT_THROW(broken(), IPCException);
  }
