@@ -1,13 +1,12 @@
-#ifndef IPCPIPE_H
-#define IPCPIPE_H
+#ifndef IPCPIPELIB_H
+#define IPCPIPELIB_H
 
 #include "filehandlerlib.h"
-#include "ipcexceptionlib.h"
-#include <map>
+
 #include <string>
 #include <vector>
 #include <iostream>
-#include <map>
+
 #include <unistd.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -49,10 +48,12 @@ class PipeReceiver{
     std::string _read_file;
     int _check_fifo = -1;
     std::vector<unsigned char> _readbuffer;
+    long unsigned int _buffer_size = 4096;
     int _fifo = -1;
-    uint16_t fd;
+    int fd;
+    size_t bytesread = 1;
     PipeReceiver();
-    
+
 
     public:
     PipeReceiver(const std::string & filename);

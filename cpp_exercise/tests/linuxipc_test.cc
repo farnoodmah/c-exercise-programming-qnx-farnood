@@ -1,6 +1,5 @@
 #include "src/lib/linuxipclib.h"
-#include "src/lib/filehandlerlib.h"
-#include "src/lib/ipcpipelib.h"
+#include "src/lib/ipcexceptionlib.h"
 
 #include <map>
 #include <vector>
@@ -18,6 +17,7 @@ class FileHandlerTests : public ::testing::Test{
       FileHandler nonexFile{"thisfiledoesnotexist.txt"};
       FileHandler txtFile{"testfile.txt"};
       FileHandler pdfFile{"pdftestfile.pdf"};
+      FileHandler bigFile{"QNX.zip"};
       std::string samplestring = "Test Data";
       std::vector<unsigned char> samplevec;
       
@@ -26,7 +26,7 @@ class FileHandlerTests : public ::testing::Test{
 
 
 
-  TEST_F(FileHandlerTests, ReadingFromNoExistingFile){
+  TEST_F(FileHandlerTests, ReadingFromNotExistingFile){
 
     remove("thisfiledoesnotexist.txt");
     std::string exception;
@@ -58,8 +58,10 @@ class FileHandlerTests : public ::testing::Test{
    TEST_F(FileHandlerTests, ReadingAndWritingTheCorrectData){
      samplevec.insert(samplevec.begin(), samplestring.begin(), samplestring.end());
      std::vector<unsigned char> testvec;
+  
     try{
         txtFile.createFile();
+
         txtFile.writeFile(samplevec,samplevec.size());
         testvec = txtFile.readFile(samplevec.size());
     } catch(IPCException & e){}
@@ -68,6 +70,18 @@ class FileHandlerTests : public ::testing::Test{
 
   }
 
+TEST_F(FileHandlerTests, ReadingBigFileAndWriting){
+    FileHandler fhpd("new.zip");
+    std::vector<unsigned char> testvec;
+    try{
+      fhpd.createFile();
+        
+      testvec = bigFile.readFile(bigFile.getSize());
+      fhpd.writeFile(testvec,testvec.size());
+    } catch(IPCException & e){}
+      
+
+  }
 
 
    TEST_F(FileHandlerTests, RemovingFile){

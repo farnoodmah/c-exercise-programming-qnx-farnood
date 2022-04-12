@@ -1,5 +1,5 @@
 #include "linuxipclib.h"
-
+#include "ipcexceptionlib.h"
 
 
 /***
@@ -228,7 +228,7 @@ void  CommandOption::printHelp(){
     std::cout<<"\n\n    usage: "<< _program << "[--help] [--messages --file <path>] [--queue --file <path>][--pipe --file <path>]\n		             [shm --file <path> <buffer_size_in_kb>]\n\n\n" <<
 					   _program << " is used to "<< ((_program == _ipcreceiver) ? "receive" : "send") << " files between a client "<< "(" + _ipcsender + ")" << " and server " << "(" + _ipcreceiver + ")" <<  " via different IPC methods (queue, pipe, and shm).\n" <<
 						"Primary commands:\n\n" <<
-            "--pipe        For "<<((_program == _ipcreceiver) ? "receiving" : "sending") <<"  files with the pipe option. (*not implemented)\n" <<
+            "--pipe        For "<<((_program == _ipcreceiver) ? "receiving" : "sending") <<"  files with the pipe option.\n" <<
 						"--queue       For "<<((_program == _ipcreceiver) ? "receiving" : "sending") <<" files with the message queue option. (*not implemented)\n" <<
 						"--shm         For "<<((_program == _ipcreceiver) ? "receiving" : "sending") <<"  files by using a shared memory buffer. (*not implemented)\n\n" <<
 						"--help        lists available commands and guides.\n\n";
