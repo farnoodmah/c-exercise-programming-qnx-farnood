@@ -8,7 +8,6 @@
 #include "gtest/gtest.h"
 
 
-
 class FileHandlerTests : public ::testing::Test{
 
       public:
@@ -36,7 +35,7 @@ class FileHandlerTests : public ::testing::Test{
        
        }catch(IPCException & e){
           exception = e.what();
-          ASSERT_EQ("FileHandler ERROR: Cannot Close the File Correctly", exception);
+          ASSERT_EQ("FileHandler ERROR: Cannot Open the File Correctly", exception);
           
        }
 
@@ -45,10 +44,9 @@ class FileHandlerTests : public ::testing::Test{
 
    TEST_F(FileHandlerTests, GettingTheCorrectSize){
      samplevec.insert(samplevec.begin(), samplestring.begin(), samplestring.end());
-    try{
-        txtFile.createFile();
-        txtFile.writeFile(samplevec,samplevec.size());
-    } catch(IPCException & e){}
+    
+      txtFile.createFile();
+       txtFile.writeFile(samplevec,samplevec.size());
          
        ASSERT_EQ(txtFile.getSize(), samplevec.size() );
 
@@ -59,27 +57,14 @@ class FileHandlerTests : public ::testing::Test{
      samplevec.insert(samplevec.begin(), samplestring.begin(), samplestring.end());
      std::vector<unsigned char> testvec;
   
-    try{
+    
         txtFile.createFile();
 
         txtFile.writeFile(samplevec,samplevec.size());
-        testvec = txtFile.readFile(samplevec.size());
-    } catch(IPCException & e){}
+        testvec = txtFile.readFile(txtFile.getSize());
+        
       remove("testfile.txt"); 
        ASSERT_EQ(testvec, samplevec );
-
-  }
-
-TEST_F(FileHandlerTests, ReadingBigFileAndWriting){
-    FileHandler fhpd("new.zip");
-    std::vector<unsigned char> testvec;
-    try{
-      fhpd.createFile();
-        
-      testvec = bigFile.readFile(bigFile.getSize());
-      fhpd.writeFile(testvec,testvec.size());
-    } catch(IPCException & e){}
-      
 
   }
 
@@ -91,12 +76,12 @@ TEST_F(FileHandlerTests, ReadingBigFileAndWriting){
     std::vector<unsigned char> testvec;
     try{
         txtFile.createFile();
-        txtFile.writeFile(samplevec,samplevec.size());
+        txtFile.writeFile(samplevec,samplevec.size()+1);
         txtFile.removeFile();
         testvec = txtFile.readFile(samplevec.size());
     } catch(IPCException & e){
           exception = e.what();
-          ASSERT_EQ("FileHandler ERROR: Cannot Close the File Correctly", exception);
+          ASSERT_EQ("FileHandler ERROR: Cannot Open the File Correctly", exception);
     }
        
     }

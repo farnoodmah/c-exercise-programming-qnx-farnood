@@ -11,6 +11,7 @@
 #include <cstring>
 #include <sys/types.h>
 #include <cerrno>
+#include <errno.h>
 
 
 
@@ -22,7 +23,7 @@
 class FileHandler{
 private:
 const std::string _file_name; //input file name
-uint8_t _fd;  //file desriptor
+int _fd;  //file desriptor
 std::string _file_input; // the data that should be written into the file
 size_t _write_size; // the size of data that should be written
 size_t _read_size; // the size of data that should be read

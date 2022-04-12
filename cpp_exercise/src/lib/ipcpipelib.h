@@ -6,7 +6,6 @@
 #include <string>
 #include <vector>
 #include <iostream>
-
 #include <unistd.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -28,7 +27,7 @@ class PipeSender{
     std::vector<unsigned char> _read_file;
     int _check_fifo = -1;
     
-    uint16_t fd;
+
     PipeSender();
     
 

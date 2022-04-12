@@ -38,7 +38,7 @@ PipeSender::PipeSender(const std::string & filename): _file_name(filename){
          ret = mkfifo(_myfifo, 0666);
          if (ret<0)
          {  
-           std::cout<<errno<<std::endl;
+           std::cout<<strerror(errno)<<std::endl;
            throw IPCException("IPCSender ERROR: Cannot make the Pipe.");
          }
 
@@ -50,7 +50,7 @@ PipeSender::PipeSender(const std::string & filename): _file_name(filename){
 
          if(_check_fifo < 0){
             remove(_myfifo);
-            std::cout<<errno<<std::endl;
+            std::cout<<strerror(errno)<<std::endl;
              throw IPCException("IPCSender ERROR: Cannot open the Pipe.");
          }
 
@@ -59,9 +59,9 @@ PipeSender::PipeSender(const std::string & filename): _file_name(filename){
          err = write(_check_fifo,&_read_file[0],_file_size);
 
           if(err < 0){
-            close(_check_fifo);
+           
             remove(_myfifo);
-            std::cout<<errno<<std::endl;
+           std::cout<<strerror(errno)<<std::endl;
              throw IPCException("IPCSender ERROR: Cannot write to the Pipe.");
          }
 
@@ -72,7 +72,7 @@ PipeSender::PipeSender(const std::string & filename): _file_name(filename){
          err = close(_check_fifo);
 
          if(err < 0){
-          
+          std::cout<<strerror(errno)<<std::endl;
              throw IPCException("IPCSender ERROR: Cannot close the Pipe.");
          }
 
@@ -137,9 +137,9 @@ PipeReceiver::PipeReceiver(const std::string & filename): _file_name(filename){
               break;
              }
            if(bytesread<0){
-             close(_fifo);
-             remove(_myfifo);
-             std::cout<<errno<<std::endl;
+             
+         
+            std::cout<<strerror(errno)<<std::endl;
              throw IPCException("IPCReceiver ERROR: Cannot read the file");
            }
             smallbuffer.resize(bytesread);
@@ -152,14 +152,14 @@ PipeReceiver::PipeReceiver(const std::string & filename): _file_name(filename){
       
         int err = close(_fifo);
          if(err<0){
-             remove(_myfifo);
-             std::cout<<errno<<std::endl;
+            
+            std::cout<<strerror(errno)<<std::endl;
              throw IPCException("IPCReceiver ERROR: Cannot close the file");
            }
 
         err = remove(_myfifo);
          if(err<0){
-             std::cout<<errno<<std::endl;
+             std::cout<<strerror(errno)<<std::endl;
              throw IPCException("IPCReceiver ERROR: Cannot remove the file");
            }
 
