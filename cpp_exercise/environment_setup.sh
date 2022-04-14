@@ -28,22 +28,6 @@ else
    sudo apt-get install git
 fi
  
- 
- 
-CHECKNODEJS="$(dpkg-query -W -f='${Status}' nodejs)"
- 
- 
- 
-if [ "$CHECKNODEJS" = "$INSTALL" ]
-then
-   echo "NODEJS is intalled already\n"
-else
-   echo "Trying to install NODEJS\n"
-   curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash -
-   sudo apt update
-   sudo apt install nodejs
-fi
- 
 
  
 CHECKBAZEL="$(dpkg-query -W -f='${Status}' bazel)"

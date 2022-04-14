@@ -1,6 +1,7 @@
 #include "src/lib/linuxipclib.h"
 #include "src/lib/ipcexceptionlib.h"
 
+
 #include <map>
 #include <vector>
 #include<thread>
@@ -29,7 +30,7 @@ class FileHandlerTests : public ::testing::Test{
 
     remove("thisfiledoesnotexist.txt");
 
-    ASSERT_THROW(nonexFile.readFile(10), IPCException);
+    ASSERT_THROW(nonexFile.readFile(), IPCException);
     
   }
 
@@ -52,7 +53,9 @@ class FileHandlerTests : public ::testing::Test{
         txtFile.createFile();
 
         txtFile.writeFile(samplevec,samplevec.size());
-        testvec = txtFile.readFile(txtFile.getSize());
+        txtFile.openForReading();
+        testvec = txtFile.readFile();
+        
         
       remove("testfile.txt"); 
        ASSERT_EQ(testvec, samplevec );
@@ -70,7 +73,8 @@ class FileHandlerTests : public ::testing::Test{
         txtFile.writeFile(samplevec,samplevec.size()+1);
         txtFile.removeFile();
         
-    ASSERT_THROW(txtFile.readFile(samplevec.size()), IPCException);
+        
+    ASSERT_THROW( txtFile.openForReading();, IPCException);
        
     }
 
@@ -154,3 +158,45 @@ class IPCExceptionTests : public ::testing::Test{
 TEST_F(IPCExceptionTests, CatchingException){
    ASSERT_THROW(broken(), IPCException);
  }
+
+
+ /**
+ * PipeSender & PipeReceiver
+ * 
+ */
+
+ TEST(PipeTests, SendingSmallTextfile){
+
+  FileHandler pf("pipesender.txt");
+  FileHandler pr("pipereceiver2.txt");
+
+  std::string samplestring = "Pipe Test Data";
+  std::vector<unsigned char> samplevec;
+  samplevec.insert(samplevec.begin(), samplestring.begin(), samplestring.end());
+  std::vector<unsigned char> sendvec;
+  std::vector<unsigned char> recvec;
+    
+  pf.createFile();
+  pf.writeFile(samplevec,samplevec.size());
+    pf.openForReading();
+   sendvec = pf.readFile();
+   pf.~FileHandler();
+
+  pid_t pid = fork();
+
+  if (pid > 0){
+    PipeSender pips("pipesender.txt");
+    exit(0);
+  }
+  else if (pid == 0){
+    PipeReceiver pipr("pipereceiver2.txt");
+     pr.openForReading();
+     recvec = pr.readFile();
+    ASSERT_STREQ((char *)sendvec.data(),(char *)recvec.data());
+    
+    }
+
+}
+
+
+ 
