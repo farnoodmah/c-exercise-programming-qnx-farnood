@@ -19,13 +19,13 @@
 
 class PipeSender{
     private:
-    const std::string _file_name;
+    const std::string _file_name; 
     size_t _file_size;
     const char * _myfifo = PIPE_FIFO_NAME;
     int ret;
     std::vector<unsigned char> _read_file;
     int _check_fifo = -1;
-    
+    int err;
 
     PipeSender();
     
@@ -40,15 +40,9 @@ class PipeSender{
 class PipeReceiver{
     private:
     const std::string _file_name;
-    size_t _file_size;
     const char * _myfifo = PIPE_FIFO_NAME;
-    int ret;
-    std::string _read_file;
-    int _check_fifo = -1;
-    std::vector<unsigned char> _readbuffer;
     long unsigned int _buffer_size = 4096;
     int _fifo = -1;
-    int fd;
     size_t bytesread = 1;
     PipeReceiver();
 
