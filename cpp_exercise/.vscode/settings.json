@@ -21,9 +21,7 @@
             }
         ]
     },
-    "gtest-adapter.debugConfig": [
-        "gtest"
-    ],
+    "gtest-adapter.debugConfig": [ "gtest"],
     "gtest-adapter.supportLocation": true,
     "files.associations": {
         "ostream": "cpp",

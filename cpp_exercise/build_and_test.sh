@@ -8,7 +8,7 @@ bazel build --cxxopt='-std=c++14' //src/main:ipcreceiver --linkopt="-lrt"
 
 echo "Running the Test Cases\n"
 
-bazel test --cxxopt='-std=c++14' //tests:linuxipc_test
+bazel test --cxxopt='-std=c++14' //tests:linuxipc_test --linkopt="-lrt"
 
 rm -r -f binary_output
 rm -r -f test_output

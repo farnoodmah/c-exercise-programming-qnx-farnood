@@ -1,6 +1,5 @@
 #include "ipcpipelib.h"
 #include "ipcexceptionlib.h"
-
 /***
  * PipeSender 
  * **/
@@ -15,69 +14,74 @@ PipeSender::PipeSender(const std::string & filename): _file_name(filename){
 
          FileHandler fd(_file_name);
 
-         try{
+        
            _file_size = fd.getSize();
-         }catch(IPCException & e){
-          std::cout<<e.what()<<std::endl;
-          exit(EXIT_FAILURE);
-         }
+        
+      
 
         std::cout<<"          File Name: "<<_file_name<<std::endl;
         std::cout<<"          File Size: "<<_file_size<<" bytes"<<std::endl;
-
-         try{
-           _read_file = fd.readFile(_file_size);
-
-         }catch(IPCException & e){
-          std::cout<<e.what()<<std::endl;
-          exit(EXIT_FAILURE);
-         }
-         
-        int err;
-
+       
+       
       
 
         remove(_myfifo);
          
-         
+         //making the FIFO pipe
+
          ret = mkfifo(_myfifo, 0666);
+
          if (ret<0)
-         {
+         {  
+           std::cout<<strerror(errno)<<std::endl;
            throw IPCException("IPCSender ERROR: Cannot make the Pipe.");
-         }
-
-         
-
-         
+         }  
+          std::cout<<"          Waiting for The Sender... "<<std::endl;
 
          _check_fifo = open(_myfifo, O_WRONLY);
 
          if(_check_fifo < 0){
             remove(_myfifo);
+            std::cout<<strerror(errno)<<std::endl;
              throw IPCException("IPCSender ERROR: Cannot open the Pipe.");
          }
 
          std::cout<<"          Pipe is Open: Trying to write the file  "<<std::endl;
+       
+        //opening for the file the be read
+         fd.openForReading();
 
-         err = write(_check_fifo,&_read_file[0],_file_size);
+
+         while (true)
+         {  
+           
+           //reading the file 
+           _read_file = fd.readFile();
+
+           //the end of the file
+           if(_read_file.size()==0){
+             break;
+           }
+
+           if (_read_file.size()>0){
+
+          //writing to the pipe    
+          err = write(_check_fifo,_read_file.data(),_read_file.size());
 
           if(err < 0){
-            close(_check_fifo);
+           
             remove(_myfifo);
+           std::cout<<strerror(errno)<<std::endl;
              throw IPCException("IPCSender ERROR: Cannot write to the Pipe.");
          }
-
+             
+           }
+         }
     
 
           std::cout<<"          Successfully written to the Pipe "<<std::endl;
          
-         err = close(_check_fifo);
-
-         if(err < 0){
-          
-             throw IPCException("IPCSender ERROR: Cannot close the Pipe.");
-         }
-
+        
           std::cout<<"          Pipe is Closed  "<<std::endl;
 
 
@@ -91,7 +95,9 @@ PipeSender::PipeSender(const std::string & filename): _file_name(filename){
 }
 
 PipeSender::~PipeSender(){
-  close(_check_fifo);
+ close(_check_fifo);
+
+
 }
 
 /**
@@ -106,14 +112,7 @@ PipeReceiver::PipeReceiver(const std::string & filename): _file_name(filename){
         std::cout<<"**************************************************************"<<std::endl;
         std::cout<<"**************************************************************"<<std::endl;
 
-        FileHandler fd2(_file_name);
-        try{
-          fd2.createFile();
-        }catch(IPCException & e){
-          remove(_myfifo);
-          std::cout<<e.what()<<std::endl;
-          exit(EXIT_FAILURE);
-        }
+       
       
          std::cout<<"          File Name: "<<_file_name<<std::endl;
          
@@ -121,57 +120,45 @@ PipeReceiver::PipeReceiver(const std::string & filename): _file_name(filename){
          //trying to to open the pipe 
           while(  _fifo == 0 || _fifo ==-1 ){
 
-            sleep(5);
+           
             std::cout<<"          Waiting For The Sender: "<<std::endl;
             _fifo = open(_myfifo,O_RDONLY);
-
+            sleep(5);
           }
 
-        //reading file in chunk of 2 bytes
-        unsigned char mybuffer[2];
-        size_t bytesread = 1;
-
        
-           while ((bytesread = read(_fifo,mybuffer, 2)) > 0)
-         {
+       FileHandler fd2(_file_name);
+        fd2.createFile();
+       
 
-           if(bytesread<0){
-             close(_fifo);
-             remove(_myfifo);
-             throw IPCException("IPCReceiver ERROR: Cannot read the file");
+       //reading file in chunks of 4096 bytes from the pipe and saving them in a new file
+
+       std::cout<<"          Starting the read the data: "<<std::endl;
+
+           while (bytesread > 0)
+         {
+            std::vector<unsigned char> smallbuffer(_buffer_size + 1);
+           bytesread = read(_fifo,smallbuffer.data(),_buffer_size);
+           if(bytesread == 0){
+             break;
            }
 
-          //  for(int i = 0; i <2 ;i++){
-          //   _readbuffer.push_back(mybuffer[i]);
-          // }
-            _readbuffer.insert(_readbuffer.end(),std::begin(mybuffer), std::end(mybuffer));
-          
+           else if(bytesread<0){
+              std::cout<<strerror(errno)<<std::endl;
+             throw IPCException("IPCReceiver ERROR: Cannot read the file");
+           }
+         
+         
+           smallbuffer.resize(bytesread);
+           fd2.writeFile(smallbuffer,smallbuffer.size());
+        
           
          }
 
             std::cout<<"          Received The File Successfully "<<std::endl;
-      
-        int err = close(_fifo);
-         if(err<0){
-             remove(_myfifo);
-             throw IPCException("IPCReceiver ERROR: Cannot close the file");
-           }
-
-        err = remove(_myfifo);
-         if(err<0){
-             
-             throw IPCException("IPCReceiver ERROR: Cannot remove the file");
-           }
-
-       
         
-       
-        try{
-           fd2.writeFile(_readbuffer,_readbuffer.size());
-        }catch(IPCException & e){
-          std::cout<<e.what()<<std::endl;
-          exit(EXIT_FAILURE);
-        }
+           
+        
          std::cout<<"          Save the data into the:  "<<_file_name<<std::endl;
 
         std::cout<<"**************************************************************"<<std::endl;
@@ -181,7 +168,9 @@ PipeReceiver::PipeReceiver(const std::string & filename): _file_name(filename){
         
 }
 
-PipeReceiver::~PipeReceiver(){
+  PipeReceiver::~PipeReceiver(){
   close(_fifo);
-  remove(_myfifo);
+   remove(_myfifo);
+
+  
 }
