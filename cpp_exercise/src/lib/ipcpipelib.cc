@@ -35,7 +35,8 @@ PipeSender::PipeSender(const std::string & filename): _file_name(filename){
          {  
            std::cout<<strerror(errno)<<std::endl;
            throw IPCException("IPCSender ERROR: Cannot make the Pipe.");
-         }
+         }  
+          std::cout<<"          Waiting for The Sender... "<<std::endl;
 
          _check_fifo = open(_myfifo, O_WRONLY);
 
@@ -126,6 +127,8 @@ PipeReceiver::PipeReceiver(const std::string & filename): _file_name(filename){
           }
 
        
+       FileHandler fd2(_file_name);
+        fd2.createFile();
        
 
        //reading file in chunks of 4096 bytes from the pipe and saving them in a new file

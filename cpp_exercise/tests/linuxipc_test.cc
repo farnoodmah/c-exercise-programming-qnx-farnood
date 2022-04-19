@@ -129,11 +129,11 @@ ASSERT_THROW(CommandOption co("ipcsender",2,argv), IPCException);
 TEST(CommandOptionTests, GivingOnlyFileAsArgument){
 
   char cmdlineTemp[][4096] = {"","--file","test.txt"};
-  char *argv[] = {cmdlineTemp[0], cmdlineTemp[1], cmdlineTemp[2], NULL};
+   char *argv[] = {cmdlineTemp[0], cmdlineTemp[1],cmdlineTemp[2],cmdlineTemp[3], NULL};
   
 
 
-    CommandOption co("ipcsender",3,argv);
+    CommandOption co("ipcsender",4,argv);
   
   
 ASSERT_THROW(co.getCommand(), IPCException);
@@ -142,10 +142,11 @@ ASSERT_THROW(co.getCommand(), IPCException);
 
 TEST(CommandOptionTests, GettingMsgQueueProtocol){
   
-  char * arggv[4] = {"","--msgqueue","--file","test.txt"};
- 
+ char cmdlineTemp[][4096] = {"","--msgqueue","--file","test.txt"};
+char *argv[] = {cmdlineTemp[0], cmdlineTemp[1], cmdlineTemp[2], cmdlineTemp[3], NULL};
+  
 
-  CommandOption co("ipcsender",4,arggv);
+  CommandOption co("ipcsender",4,argv);
   std::vector<std::string> outputs = co.getCommand();
   ASSERT_EQ(outputs[0],"test.txt");
   ASSERT_EQ(outputs[1],"msgqueue");
@@ -182,7 +183,7 @@ TEST_F(IPCExceptionTests, CatchingException){
  TEST(PipeTests, SendingSmallTextfile){
 
   FileHandler pf("pipesender.txt");
-  FileHandler pr("pipereceiver2.txt");
+  FileHandler pr("pipereceiver.txt");
 
   std::string samplestring = "Pipe Test Data";
   std::vector<unsigned char> samplevec;
@@ -200,12 +201,14 @@ TEST_F(IPCExceptionTests, CatchingException){
 
   if (pid > 0){
     PipeSender pips("pipesender.txt");
-    exit(0);
+
   }
   else if (pid == 0){
     PipeReceiver pipr("pipereceiver2.txt");
+
      pr.openForReading();
      recvec = pr.readFile();
+
     ASSERT_STREQ((char *)sendvec.data(),(char *)recvec.data());
     
     }
@@ -213,4 +216,3 @@ TEST_F(IPCExceptionTests, CatchingException){
 }
 
 
- 

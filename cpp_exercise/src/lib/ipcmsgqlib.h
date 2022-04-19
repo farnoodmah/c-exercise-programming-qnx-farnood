@@ -35,14 +35,14 @@ class MsgQueueSender{
     long unsigned int _msg_queue_maxnummsg = 10;
     std::string _msg_queue_name = MSG_QUEUE_NAME;
     int _check_empty = -1;
-    unsigned int _priority;
+    unsigned int _priority = 1;
 
     MsgQueueSender();
   
 
     public:
     MsgQueueSender(const std::string & filename);
-    virtual ~MsgQueueSender(){};
+    virtual ~MsgQueueSender();
 }; 
 
 class MsgQueueReceiver{
@@ -54,7 +54,7 @@ class MsgQueueReceiver{
     int _receive_size;
     mqd_t _msg_queue;
     struct mq_attr _attrs;
-    unsigned int _priority;
+    unsigned int _priority = 1;
     long unsigned int _msg_queue_msgsize = 4096;
     long unsigned int _msg_queue_maxnummsg = 10;
     int _check_empty = 0;
@@ -64,7 +64,7 @@ class MsgQueueReceiver{
     
     public:
     MsgQueueReceiver(const std::string & filename);
-    virtual ~MsgQueueReceiver(){};
+    virtual ~MsgQueueReceiver();
 }; 
 
 

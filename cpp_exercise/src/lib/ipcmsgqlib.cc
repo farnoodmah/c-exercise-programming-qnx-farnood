@@ -18,6 +18,9 @@ MsgQueueSender::MsgQueueSender(const std::string & filename): _file_name(filenam
    
 
     int err;
+    remove(_msg_queue_name.c_str());
+        ret = mq_unlink(_msg_queue_name.c_str());
+
     
      memset(&_attrs, 0, sizeof _attrs);
    
@@ -32,7 +35,7 @@ MsgQueueSender::MsgQueueSender(const std::string & filename): _file_name(filenam
         std::cout<<"          Loading the File. Please Wait..."<<std::endl;
 
 
-    _read_file = fd.readFile(fd.getSize());
+    
 
 
     _msg_queue = mq_open(_msg_queue_name.c_str(), O_WRONLY | O_CREAT , S_IRWXU | S_IRWXG, &_attrs);
@@ -42,33 +45,24 @@ MsgQueueSender::MsgQueueSender(const std::string & filename): _file_name(filenam
 
     }
    
- std::cout<<"          MSGQueue is Open: Trying to write the file  "<<std::endl;
+ std::cout<<"          MSGQueue is Open: Trying to send the file  "<<std::endl;
+ 
+ fd.openForReading();
+
         
-while(!_read_file.empty()){
-    
+
+while (true)
+{
     std::vector<unsigned char> buffer;
+    buffer = fd.readFile();
+  
 
-    if(_read_file.size()<=_msg_queue_msgsize){
-       
-            buffer.insert(buffer.end(),_read_file.begin(),_read_file.end());
-            _read_file.erase(_read_file.begin(),_read_file.end());
-            
-         }
-    else if(_read_file.size()>_msg_queue_msgsize){
-        
-        buffer.insert(buffer.end(),_read_file.begin(),_read_file.begin()+_msg_queue_msgsize);
-        _read_file.erase(_read_file.begin(),_read_file.begin()+_msg_queue_msgsize);
-     }
-    
-
-   err = mq_send(_msg_queue, (char *)&buffer[0],buffer.size(),_priority);
-     if(_msg_queue<0){
-         std::cout<<strerror(errno)<<std::endl;
-         throw IPCException("IPCSender ERROR: Cannot send to the MSGQueue.");
-
+    err = mq_send(_msg_queue, (char *)&buffer[0],buffer.size(),_priority);
+      if(buffer.size()==0){
+        break;
     }
-	 	
 }
+
    
 
 	 	 	// check if the queue is empty
@@ -80,19 +74,7 @@ while(!_read_file.empty()){
 	 	 	}
     
     
-        ret = mq_close(_msg_queue);
-          if(ret<0){
-         std::cout<<strerror(errno)<<std::endl;
-         throw IPCException("IPCSender ERROR: Cannot close the  MSGQueue.");
-
-    }      
-       ret = mq_unlink(_msg_queue_name.c_str());
-
-         if(ret<0){
-         std::cout<<strerror(errno)<<std::endl;
-         throw IPCException("IPCSender ERROR: Cannot unlink the  MSGQueue.");
-
-    }
+      
 
        std::cout<<"          Successfully written to the MSGQueue "<<std::endl;
        std::cout<<"          MSGQueue is Closed  "<<std::endl;
@@ -103,14 +85,19 @@ while(!_read_file.empty()){
         std::cout<<"**************************************************************"<<std::endl;
 }
 
+MsgQueueSender::~MsgQueueSender(){
+      mq_close(_msg_queue);
+      
+    
+    mq_unlink(_msg_queue_name.c_str());
 
+}
 
 /***
  * MsgQueueReceiver Class
  * 
  * 
  * **/
-
 
 
 MsgQueueReceiver::MsgQueueReceiver(const std::string & filename): _file_name(filename){
@@ -138,7 +125,8 @@ MsgQueueReceiver::MsgQueueReceiver(const std::string & filename): _file_name(fil
     
         std::cout<<"          Starting the read the data: "<<std::endl;   
          
-       
+       FileHandler fd(_file_name);
+        fd.createFile();
         while (true)
 		   	{
                    std::vector<unsigned char> buffer (4097);
@@ -151,24 +139,28 @@ MsgQueueReceiver::MsgQueueReceiver(const std::string & filename): _file_name(fil
              }
              if(_receive_size>0){
             buffer.resize(_receive_size);
-            _read_file.insert(_read_file.end(),buffer.begin(),buffer.end());
-
+              fd.writeFile(buffer,buffer.size()); 
+           
              }
         
 		   	}
 
-         std::cout<<"          Received "<<_read_file.size()<<" Bytes Successfully "<<std::endl;
+         std::cout<<"          Received "<<fd.getSize()<<" Bytes Successfully "<<std::endl;
 
-        mq_close(_msg_queue);    
-         mq_unlink(_msg_queue_name.c_str());
+
+        
 
          std::cout<<"          Save the data into the:  "<<_file_name<<std::endl;   
-         FileHandler fd(_file_name);
-         fd.createFile();
-         fd.writeFile(_read_file,_read_file.size()); 
-
+         
+  
         std::cout<<"**************************************************************"<<std::endl;
         std::cout<<"****************************IPCReceiver: MESSAGE QUEUE PROTOCOL**************************"<<std::endl;
         std::cout<<"**************************************************************"<<std::endl;
         std::cout<<"**************************************************************"<<std::endl;  
+}
+
+MsgQueueReceiver::~MsgQueueReceiver(){
+     mq_close(_msg_queue);    
+    mq_unlink(_msg_queue_name.c_str());
+    remove(_msg_queue_name.c_str());
 }
