@@ -17,22 +17,6 @@
 #include <sys/ipc.h>
 #include <algorithm>
 
-// Buffer data structures
-#define MAX_BUFFERS 10
-
-#define LOGFILE "/tmp/example.log"
-
-#define SEM_MUTEX_NAME "/sem-mutex"
-#define SEM_BUFFER_COUNT_NAME "/sem-buffer-count"
-#define SEM_SPOOL_SIGNAL_NAME "/sem-spool-signal"
-#define SHARED_MEM_NAME "/posix-shared-mem-example"
-
-struct shared_memory {
-    char buf [MAX_BUFFERS] [256];
-    int buffer_index;
-    int buffer_print_index;
-};
-
 
 
 /**
@@ -44,40 +28,53 @@ struct shared_memory {
 class SharedMemorySender {
 
     private:
+      struct _shm_data_struct{
+       size_t datasize;
+       unsigned char data[4096];
+   };
+    sem_t *_sem_receiver;
+    sem_t *_sem_sender;
     const std::string _file_name;
-    sem_t * _semaphore_p[2];
-    int shmid;
-    const int _shm_size = 4096;
-    const std::string _shm_name = "/shm"; 
+    const int _shm_size = 4104;
+    const std::string _shm_name = "shm"; 
+    int _shm_fd = -1;
     const std::string _semaphoresender_name = "/semsender"; 
     const std::string _semaphorereceiver_name  = "/semreceiver"; 
-    int _shm_fd;
-    void* _ptr;
+    struct _shm_data_struct *_ptr;
+    int _err;
     SharedMemorySender();
 
     public:
     SharedMemorySender(const std::string filename);
-    virtual ~SharedMemorySender(){};
+    virtual ~SharedMemorySender();
 
 };
 
 class SharedMemoryReceiver {
 
     private:
-    const std::string _file_name;
-    sem_t * _semaphore_p[2];
-    int shmid;
-    const int _shm_size = 4096;
-    const std::string _shm_name = "/shm"; 
+     struct _shm_data_struct{
+       size_t datasize;
+       unsigned char data[4096];
+    };
+
+    const std::string _file_name;;
+    const int _shm_size = 4104;
+    const std::string _shm_name = "shm"; 
+    int _shm_fd = -1;
     const std::string _semaphoresender_name = "/semsender"; 
     const std::string _semaphorereceiver_name  = "/semreceiver"; 
-    int _shm_fd;
-    void* _ptr;
+    struct _shm_data_struct *_ptr;
+    sem_t *_sem_receiver;
+    sem_t *_sem_sender;
+    struct timespec _ts;
+    const size_t _buffer_size = 4096;
+   
     SharedMemoryReceiver();
 
     public:
     SharedMemoryReceiver(const std::string filename);
-    virtual ~SharedMemoryReceiver(){};
+    virtual ~SharedMemoryReceiver();
 
 };
 #endif

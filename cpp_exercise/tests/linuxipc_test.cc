@@ -155,10 +155,10 @@ char *argv[] = {cmdlineTemp[0], cmdlineTemp[1], cmdlineTemp[2], cmdlineTemp[3], 
 
 TEST(CommandOptionTests, GettingSHMProtocol){
   
-  char * arggv[4] = {"","--shm","--file","test.txt"};
- 
+  char cmdlineTemp[][4096] = {"","--shm","--file","test.txt"};
+  char *argv[] = {cmdlineTemp[0], cmdlineTemp[1], cmdlineTemp[2], cmdlineTemp[3], NULL};
 
-  CommandOption co("ipcsender",4,arggv);
+  CommandOption co("ipcsender",4,argv);
   std::vector<std::string> outputs = co.getCommand();
   ASSERT_EQ(outputs[0],"test.txt");
   ASSERT_EQ(outputs[1],"shm");

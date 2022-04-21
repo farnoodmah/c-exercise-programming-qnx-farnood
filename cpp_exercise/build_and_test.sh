@@ -3,8 +3,8 @@ set -x
 
 echo "Trying to build \"ipcreceiver.cc\" and \"ipcsender.cc\" using build \n"
 
-bazel build --cxxopt='-std=c++14'  //src/main:ipcsender --linkopt="-lrt"
-bazel build --cxxopt='-std=c++14' //src/main:ipcreceiver --linkopt="-lrt"
+bazel build --cxxopt='-std=c++14'  //src/main:ipcsender --linkopt="-lrt"  --linkopt="-lpthread" 
+bazel build --cxxopt='-std=c++14' //src/main:ipcreceiver --linkopt="-lrt"   --linkopt="-lpthread" 
 
 echo "Running the Test Cases\n"
 

@@ -19,7 +19,7 @@ MsgQueueSender::MsgQueueSender(const std::string & filename): _file_name(filenam
 
     int err;
     remove(_msg_queue_name.c_str());
-        ret = mq_unlink(_msg_queue_name.c_str());
+    ret = mq_unlink(_msg_queue_name.c_str());
 
     
      memset(&_attrs, 0, sizeof _attrs);
@@ -28,11 +28,11 @@ MsgQueueSender::MsgQueueSender(const std::string & filename): _file_name(filenam
     _attrs.mq_maxmsg = _msg_queue_maxnummsg;
     _attrs.mq_msgsize = _msg_queue_msgsize;
 
-   FileHandler fd(_file_name);
+    FileHandler fd(_file_name);
     
     std::cout<<"          File Name: "<<_file_name<<std::endl;
     std::cout<<"          File Size: "<<fd.getSize()<<" bytes"<<std::endl;
-        std::cout<<"          Loading the File. Please Wait..."<<std::endl;
+    std::cout<<"          Loading the File. Please Wait..."<<std::endl;
 
 
     
@@ -123,7 +123,7 @@ MsgQueueReceiver::MsgQueueReceiver(const std::string & filename): _file_name(fil
 	 	 	}
               
     
-        std::cout<<"          Starting the read the data: "<<std::endl;   
+        std::cout<<"          Starting to read the data: "<<std::endl;   
          
        FileHandler fd(_file_name);
         fd.createFile();
