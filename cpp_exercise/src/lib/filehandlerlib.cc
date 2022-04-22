@@ -144,7 +144,7 @@ if(err<0){
      }
 }
 
-_file_size = file_stat.st_size;
+
 
 if(file_stat.st_size<0){
          if(err<0){
@@ -153,7 +153,7 @@ if(file_stat.st_size<0){
      }
 }
 
-
+_file_size = file_stat.st_size;
 
 return _file_size;
 

@@ -42,7 +42,7 @@ class MsgQueueSender{
 
     public:
     MsgQueueSender(const std::string & filename);
-    virtual ~MsgQueueSender();
+    ~MsgQueueSender();
 }; 
 
 class MsgQueueReceiver{
@@ -64,7 +64,7 @@ class MsgQueueReceiver{
     
     public:
     MsgQueueReceiver(const std::string & filename);
-    virtual ~MsgQueueReceiver();
+    ~MsgQueueReceiver();
 }; 
 
 
