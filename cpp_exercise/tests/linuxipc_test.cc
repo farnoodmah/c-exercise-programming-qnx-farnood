@@ -110,9 +110,9 @@ TEST(CommandOptionTests, GivingOnlyProtocolAsArgument){
   char *argv[] = {cmdlineTemp[0], cmdlineTemp[1], NULL};
 
  
-    CommandOption co("ipcsender",2,argv);
+   ;
   
-ASSERT_THROW(co.getCommand(), IPCException);
+ASSERT_THROW( CommandOption co("ipcsender",2,argv), IPCException);
  
 }
 
@@ -133,10 +133,10 @@ TEST(CommandOptionTests, GivingOnlyFileAsArgument){
   
 
 
-    CommandOption co("ipcsender",4,argv);
+   
   
   
-ASSERT_THROW(co.getCommand(), IPCException);
+ASSERT_THROW( CommandOption co("ipcsender",4,argv), IPCException);
 }
 
 

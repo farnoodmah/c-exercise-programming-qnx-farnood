@@ -138,13 +138,6 @@ IPCReceiver::IPCReceiver(const std::string & filename, const std::string  & prot
  * 
  */
 
- 
- CommandOption::~CommandOption(){
-
-     _option = 0;
-     optind = 0;
- }
-
 
 /**
  * @brief Construct a new Command Option for Handling the terminal arguments
@@ -214,7 +207,20 @@ CommandOption::CommandOption(const std::string & program, int argc, char *argv[]
               }
     }
 
+     if (_filename.size() == 0 || _output.size() == 0 )
+  {
+    throw IPCException("unrecognized command. filename and protocol should be determined. please use \"--help\" for guide.\n");
+  }
+
+
+    _options.push_back(_filename);
+    _options.push_back(_output);
+
 	}
+
+ CommandOption::~CommandOption(){
+   optind = 0;
+ } 
 
 /**
  * @brief Construct a new Command Option for Handling the terminal arguments
@@ -230,15 +236,6 @@ CommandOption::CommandOption(const std::string & program, int argc, char *argv[]
  * 
  */
 std::vector<std::string> CommandOption::getCommand(){
-
-  if (_filename.size() == 0 || _output.size() == 0 )
-  {
-    throw IPCException("unrecognized command. filename and protocol should be determined. please use \"--help\" for guide.\n");
-  }
-  
-  _options.push_back(_filename);
-  _options.push_back(_output);
-  
 
   return _options;
 }
