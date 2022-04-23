@@ -24,9 +24,9 @@ SharedMemorySender::SharedMemorySender(const std::string filename): _file_name(f
 
     while(_shm_fd == -1){
      std::cout<<"          Waiting for the Receiver... "<<std::endl;
-     _shm_fd = shm_open(_shm_name.c_str(), O_RDWR, 0666);
-     _sem_sender = sem_open(_semaphoresender_name.c_str(),0);
-     _sem_receiver = sem_open(_semaphorereceiver_name.c_str(),0);
+     _shm_fd = shm_open(shm_name.c_str(), O_RDWR, 0666);
+     _sem_sender = sem_open(semaphoresender_name.c_str(),0);
+     _sem_receiver = sem_open(semaphorereceiver_name.c_str(),0);
 
          sleep(5);
     }
@@ -40,7 +40,8 @@ SharedMemorySender::SharedMemorySender(const std::string filename): _file_name(f
  
    
 
-    _ptr = (struct _shm_data_struct *)mmap(0, _shm_size, PROT_WRITE, MAP_SHARED, _shm_fd, 0);
+    _ptr = reinterpret_cast<struct _shm_data_struct *>(mmap(0, _shm_size, PROT_WRITE, MAP_SHARED, _shm_fd, 0));
+    
 
     if(_ptr == (struct _shm_data_struct *)-1){
         std::cout<<strerror(errno)<<std::endl;
@@ -61,34 +62,22 @@ SharedMemorySender::SharedMemorySender(const std::string filename): _file_name(f
 
     while(true){
 
-                
-       _err = sem_wait(_sem_receiver);
-       if(_err<0){
-         std::cout<<strerror(errno)<<std::endl;
-         throw IPCException("IPCSender ERROR: Semaphore receiver.");
-
-         }   
-
         std::vector<unsigned char>  buffer; 
         
         buffer = fd.readFile();
-
         
         _shm_data_struct tempstruct;
         tempstruct.datasize = buffer.size();
 
         std::copy(buffer.begin(), buffer.end(),tempstruct.data);
-    
-         if(buffer.size()==0){
-               memcpy(_ptr,&tempstruct, sizeof(tempstruct));
-              _err = sem_post(_sem_sender);
-              if(_err<0){
-                  std::cout<<strerror(errno)<<std::endl;
-                 throw IPCException("IPCSender ERROR: Semaphore Sender.");
 
-                   }  
-               break;
-             }
+       _err = sem_wait(_sem_receiver);
+
+       if(_err<0){
+         std::cout<<strerror(errno)<<std::endl;
+         throw IPCException("IPCSender ERROR: Semaphore receiver.");
+
+         }   
 
         memcpy(_ptr,&tempstruct, sizeof(tempstruct));
         _err =  sem_post(_sem_sender);
@@ -97,6 +86,10 @@ SharedMemorySender::SharedMemorySender(const std::string filename): _file_name(f
                  throw IPCException("IPCSender ERROR: Semaphore Sender.");
 
         } 
+        
+        if(buffer.size()==0){ 
+               break;
+             }
 
     }
    
@@ -118,7 +111,7 @@ SharedMemorySender::~SharedMemorySender(){
     sem_close(_sem_sender);
     sem_close(_sem_receiver);
     munmap(_ptr,_shm_size);
-    shm_unlink(_shm_name.c_str());
+    shm_unlink(shm_name.c_str());
 }
 
 
@@ -134,12 +127,12 @@ SharedMemoryReceiver::SharedMemoryReceiver(const std::string filename): _file_na
    
 
     
-     sem_unlink(_semaphoresender_name.c_str());
-     sem_unlink(_semaphorereceiver_name.c_str());
-     shm_unlink(_shm_name.c_str());
+     sem_unlink(semaphoresender_name.c_str());
+     sem_unlink(semaphorereceiver_name.c_str());
+     shm_unlink(shm_name.c_str());
 
 
-     _sem_sender = sem_open(_semaphoresender_name.c_str(),O_CREAT ,0660,0);
+     _sem_sender = sem_open(semaphoresender_name.c_str(),O_CREAT ,0660,0);
 
      if(_sem_sender == SEM_FAILED){
 
@@ -147,7 +140,7 @@ SharedMemoryReceiver::SharedMemoryReceiver(const std::string filename): _file_na
          throw IPCException("IPCReceiver ERROR:Cannot Open Semaphore Sender.");
      }
      
-     _sem_receiver = sem_open(_semaphorereceiver_name.c_str(),O_CREAT , 0660,1);
+     _sem_receiver = sem_open(semaphorereceiver_name.c_str(),O_CREAT , 0660,1);
    
   
      if(_sem_receiver == SEM_FAILED){
@@ -159,14 +152,14 @@ SharedMemoryReceiver::SharedMemoryReceiver(const std::string filename): _file_na
  
     std::cout<<"          Waiting for the Sender..."<<std::endl;
 
-   _shm_fd = shm_open(_shm_name.c_str(), O_CREAT | O_RDONLY, 0666);
+   _shm_fd = shm_open(shm_name.c_str(), O_CREAT | O_RDONLY, 0666);
      if(_shm_fd < 0){
          std::cout<<strerror(errno)<<std::endl;
          throw IPCException("IPCReceiver ERROR:Cannot Open Shared Memory.");
      }
 
   
-   _ptr =(_shm_data_struct *) mmap(0, _shm_size, PROT_READ, MAP_SHARED, _shm_fd, 0);
+   _ptr = reinterpret_cast<struct _shm_data_struct *>(mmap(0, _shm_size, PROT_READ, MAP_SHARED, _shm_fd, 0));
       
     if(_ptr == (struct _shm_data_struct *)-1){
         std::cout<<strerror(errno)<<std::endl;
@@ -210,15 +203,16 @@ SharedMemoryReceiver::SharedMemoryReceiver(const std::string filename): _file_na
                 break;
             }
       
-            std::vector<unsigned char> tempvec(_buffer_size);
-            tempvec.insert(tempvec.begin(),std::begin(tempstruct.data),std::end(tempstruct.data));
-            tempvec.resize(tempstruct.datasize);
-    
-
-            fr.writeFile(tempvec,tempvec.size());
-
+           
+            
         
             sem_post(_sem_receiver);
+
+             std::vector<unsigned char> tempvec(_buffer_size);    
+            tempvec.insert(tempvec.begin(),std::begin(tempstruct.data),std::end(tempstruct.data));
+            tempvec.resize(tempstruct.datasize);
+
+            fr.writeFile(tempvec,tempvec.size());
             
           }
 
@@ -241,7 +235,7 @@ SharedMemoryReceiver::~SharedMemoryReceiver(){
    sem_close(_sem_sender);
    sem_close(_sem_receiver);
    munmap(_ptr,_shm_size); 
-   shm_unlink(_shm_name.c_str());
+   shm_unlink(shm_name.c_str());
 
 
 }

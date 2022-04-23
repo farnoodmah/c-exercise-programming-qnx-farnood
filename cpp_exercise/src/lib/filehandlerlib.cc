@@ -30,7 +30,6 @@ FileHandler::~FileHandler(){
  */
 void FileHandler::createFile(){
 
-    
    
     _fd = open(_file_name.c_str(), O_RDWR| O_CREAT | O_TRUNC, _mode);
     if(_fd<0){
@@ -49,7 +48,6 @@ void FileHandler::createFile(){
 void FileHandler::writeFile(const std::vector<unsigned char> & file_input, size_t write_size){
 
     
-     _write_size = write_size;
 
     int err;
    
@@ -57,16 +55,17 @@ void FileHandler::writeFile(const std::vector<unsigned char> & file_input, size_
     _fd = open(_file_name.c_str(), O_WRONLY | O_APPEND, _mode);
       
      if(_fd<0){
+         
          std::cout<<strerror(errno)<<std::endl;
         throw IPCException("FileHandler ERROR: Cannot Open the File Correctly");
     }
 
-    err = write(_fd, file_input.data(), _write_size);
+    err = write(_fd, file_input.data(), write_size);
     
     if(err<0){
 
        std::cout<<strerror(errno)<<std::endl;
-        throw IPCException("FileHandler ERROR: Cannot Write to the File Correctly");
+       throw IPCException("FileHandler ERROR: Cannot Write to the File Correctly");
     }
 
       err = close(_fd);
@@ -114,6 +113,7 @@ std::vector<unsigned char> FileHandler::readFile(){
     std::vector<unsigned char> smallbuffer(_buffer_size);
     size_t ph;
     ph = read(_fd, smallbuffer.data() , _buffer_size);
+
     if(ph>=0){
          smallbuffer.resize(ph);
          return smallbuffer;
@@ -144,7 +144,7 @@ if(err<0){
      }
 }
 
-_file_size = file_stat.st_size;
+
 
 if(file_stat.st_size<0){
          if(err<0){
@@ -153,7 +153,7 @@ if(file_stat.st_size<0){
      }
 }
 
-
+_file_size = file_stat.st_size;
 
 return _file_size;
 
