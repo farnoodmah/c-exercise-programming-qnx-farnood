@@ -11,11 +11,12 @@
 
 
 ipcprt::Protocol IPC::protocolOptions(const std::string & input){
+  
     if (input == "pipe") return ipcprt::Protocol::pipe;
     if (input == "msgqueue") return ipcprt::Protocol::msgqueue;
     if (input == "shm") return ipcprt::Protocol::shm;
 
-    return ipcprt::Protocol::invalid;
+
 }
 
 /**
@@ -34,12 +35,10 @@ ipcprt::Protocol IPC::protocolOptions(const std::string & input){
 
 void IPCSender::ipcpipe(const std::string & filename){
    
-   try{
+   
      PipeSender pipes(filename);
-   }catch(IPCException & e){
-     std::cout<<e.what()<<std::endl;
-    exit(EXIT_FAILURE);
-   }
+     pipes.pipeTransfer();
+  
 }
 
 /**
@@ -53,6 +52,7 @@ void IPCSender::ipcpipe(const std::string & filename){
 void IPCSender::ipcmsgqueue(const std::string & filename){
      
       MsgQueueSender msgqs(filename);
+      msgqs.msgqTransfer();
 
 }
 
@@ -66,8 +66,8 @@ void IPCSender::ipcmsgqueue(const std::string & filename){
 
 void IPCSender::ipcshm(const std::string & filename){
      
-      std::cout<<"sender shared memory"<<::std::endl;
       SharedMemorySender shms(filename);
+      shms.shmTransfer();
 
 }
 
@@ -112,13 +112,8 @@ IPCSender::IPCSender(const std::string & filename, const std::string  & protocol
 
 void IPCReceiver::ipcpipe(const std::string & filename){      
 
-   try{
-      PipeReceiver piper(filename);
-   }catch(IPCException & e){
-     std::cout<<e.what()<<std::endl;
-    exit(EXIT_FAILURE);
-   }
-    
+      PipeReceiver piper(filename);  
+      piper.pipeTransfer();
 }
 
 /**
@@ -128,6 +123,7 @@ void IPCReceiver::ipcpipe(const std::string & filename){
 void IPCReceiver::ipcmsgqueue(const std::string & filename){
 
   MsgQueueReceiver msgqr(filename);
+  msgqr.msgqTransfer();
 
 }
 
@@ -137,8 +133,8 @@ void IPCReceiver::ipcmsgqueue(const std::string & filename){
 
 void IPCReceiver::ipcshm(const std::string & filename){
 
-  std::cout<<"this is receiver shared memory"<<std::endl;
   SharedMemoryReceiver shmr(filename);
+  shmr.shmTransfer();
 
 }
 
@@ -148,6 +144,7 @@ void IPCReceiver::ipcshm(const std::string & filename){
  * */
 
 IPCReceiver::IPCReceiver(const std::string & filename, const std::string  & protocol): _file_name(filename), _protocol(protocol){
+
      switch (protocolOptions(_protocol))
     {
     case ipcprt::Protocol::pipe:
@@ -281,7 +278,7 @@ std::vector<std::string> CommandOption::getCommand(){
 
 void  CommandOption::printHelp(){
   
-    std::cout<<"\n\n    usage: "<< _program << "[--help] [--messages --file <path>] [--queue --file <path>][--pipe --file <path>]\n		             [shm --file <path> <buffer_size_in_kb>]\n\n\n" <<
+    std::cout<<"\n\n    usage: "<< _program << "[--help] [--messages --file <path>] [--queue --file <path>][--pipe --file <path>]\n		             [shm --file <path>]\n\n\n" <<
 					   _program << " is used to "<< ((_program == _ipcreceiver) ? "receive" : "send") << " files between a client "<< "(" + _ipcsender + ")" << " and server " << "(" + _ipcreceiver + ")" <<  " via different IPC methods (queue, pipe, and shm).\n" <<
 						"Primary commands:\n\n" <<
             "--pipe        For "<<((_program == _ipcreceiver) ? "receiving" : "sending") <<"  files with the pipe option.\n" <<

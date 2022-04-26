@@ -23,7 +23,13 @@ SharedMemorySender::SharedMemorySender(const std::string filename): _file_name(f
     
 
     while(_shm_fd == -1){
-     std::cout<<"          Waiting for the Receiver... "<<std::endl;
+
+    ++counter;
+
+    if(counter>5){
+         throw IPCException("         IPCSender ERROR: Cannot connect to the IPCSender.");
+    }
+     std::cout<<"          Waiting for the Receiver... Try:"<<counter<<"/5"<<std::endl;
      _shm_fd = shm_open(shm_name.c_str(), O_RDWR, 0666);
      _sem_sender = sem_open(semaphoresender_name.c_str(),0);
      _sem_receiver = sem_open(semaphorereceiver_name.c_str(),0);
@@ -47,8 +53,13 @@ SharedMemorySender::SharedMemorySender(const std::string filename): _file_name(f
         std::cout<<strerror(errno)<<std::endl;
         throw IPCException("IPCSender ERROR: Cannot map the Shared Memory.");
     }
+
     
-    
+
+}
+
+void SharedMemorySender::shmTransfer(){
+
     FileHandler fd(_file_name);
 
     fd.openForReading();
@@ -71,7 +82,22 @@ SharedMemorySender::SharedMemorySender(const std::string filename): _file_name(f
 
         std::copy(buffer.begin(), buffer.end(),tempstruct.data);
 
-       _err = sem_wait(_sem_receiver);
+        if (clock_gettime(CLOCK_REALTIME, &_ts) == -1)
+            {
+                std::cout<<strerror(errno)<<std::endl;
+                 throw IPCException("IPCReceiver ERROR: Cannot get the CLOCK TIME.");
+            }
+
+            _ts.tv_sec += 15;
+    
+            int s =  sem_timedwait(_sem_receiver,&_ts);
+
+             if (s == -1)
+            {
+            if (errno == ETIMEDOUT){
+                throw IPCException("IPCReceiver ERROR: Cannot Connect to the IPCReceiver.");
+            }
+            }
 
        if(_err<0){
          std::cout<<strerror(errno)<<std::endl;
@@ -101,7 +127,6 @@ SharedMemorySender::SharedMemorySender(const std::string filename): _file_name(f
         std::cout<<"****************************IPCSender: SharedMemory PROTOCOL**************************"<<std::endl;
         std::cout<<"**************************************************************"<<std::endl;
         std::cout<<"**************************************************************"<<std::endl;
-    
 
 }
 SharedMemorySender::~SharedMemorySender(){
@@ -111,6 +136,8 @@ SharedMemorySender::~SharedMemorySender(){
     sem_close(_sem_sender);
     sem_close(_sem_receiver);
     munmap(_ptr,_shm_size);
+    sem_unlink(semaphoresender_name.c_str());
+    sem_unlink(semaphorereceiver_name.c_str());
     shm_unlink(shm_name.c_str());
 }
 
@@ -123,10 +150,6 @@ SharedMemoryReceiver::SharedMemoryReceiver(const std::string filename): _file_na
         std::cout<<"**************************************************************"<<std::endl;
 
  
-
-   
-
-    
      sem_unlink(semaphoresender_name.c_str());
      sem_unlink(semaphorereceiver_name.c_str());
      shm_unlink(shm_name.c_str());
@@ -166,6 +189,11 @@ SharedMemoryReceiver::SharedMemoryReceiver(const std::string filename): _file_na
         throw IPCException("IPCReceiver ERROR: Cannot map the Shared Memory.");
     }
     
+    
+
+}
+
+void SharedMemoryReceiver::shmTransfer(){
 
 
     FileHandler fr(_file_name);
@@ -180,7 +208,7 @@ SharedMemoryReceiver::SharedMemoryReceiver(const std::string filename): _file_na
             if (clock_gettime(CLOCK_REALTIME, &_ts) == -1)
             {
                 std::cout<<strerror(errno)<<std::endl;
-                 throw IPCException("IPCReceiver ERROR: Cannot get the CLOCK TIME.");
+                 throw IPCException("          IPCReceiver ERROR: Cannot get the CLOCK TIME.");
             }
 
             _ts.tv_sec += 15;
@@ -190,8 +218,9 @@ SharedMemoryReceiver::SharedMemoryReceiver(const std::string filename): _file_na
              if (s == -1)
             {
             if (errno == ETIMEDOUT){
-
-            break;
+                
+                throw IPCException("          IPCReceiver ERROR: Cannot connect to IPCSender.");
+                
             }
             }
 
@@ -225,8 +254,6 @@ SharedMemoryReceiver::SharedMemoryReceiver(const std::string filename): _file_na
         std::cout<<"****************************IPCReceiver: SharedMemory PROTOCOL**************************"<<std::endl;
         std::cout<<"**************************************************************"<<std::endl;
         std::cout<<"**************************************************************"<<std::endl;
-   
-    
 
 }
 
@@ -234,6 +261,8 @@ SharedMemoryReceiver::~SharedMemoryReceiver(){
 
    sem_close(_sem_sender);
    sem_close(_sem_receiver);
+   sem_unlink(semaphoresender_name.c_str());
+   sem_unlink(semaphorereceiver_name.c_str());
    munmap(_ptr,_shm_size); 
    shm_unlink(shm_name.c_str());
 

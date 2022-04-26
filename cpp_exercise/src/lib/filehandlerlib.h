@@ -20,6 +20,7 @@
  * 
  */
 
+const size_t file_data_read_size = 4096;
 class FileHandler{
     private:
         const std::string _file_name; //input file name

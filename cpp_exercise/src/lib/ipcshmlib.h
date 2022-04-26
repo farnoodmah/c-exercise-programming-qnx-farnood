@@ -44,9 +44,12 @@ class SharedMemorySender {
     struct _shm_data_struct *_ptr;
     int _err;
     SharedMemorySender();
+    int counter = 0;
+    struct timespec _ts;
 
     public:
     SharedMemorySender(const std::string filename);
+    void shmTransfer();
     ~SharedMemorySender();
 
 };
@@ -72,6 +75,7 @@ class SharedMemoryReceiver {
 
     public:
     SharedMemoryReceiver(const std::string filename);
+    void shmTransfer();
     ~SharedMemoryReceiver();
 
 };
