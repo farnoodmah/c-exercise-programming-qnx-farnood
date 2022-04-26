@@ -2,6 +2,7 @@
 #define IPCPIPELIB_H
 
 #include "filehandlerlib.h"
+
 #include <string>
 #include <vector>
 #include <iostream>
@@ -50,6 +51,7 @@ class PipeReceiver{
     public:
     PipeReceiver(const std::string & filename);
     ~PipeReceiver();
+
 
 };
 

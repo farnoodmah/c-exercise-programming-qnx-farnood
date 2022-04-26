@@ -23,6 +23,7 @@ PIPE, MESSAGE QUEUE, and SHARED MEMORY
 - [x] SHM Sender Implementation
 - [x] SHM Receiver Implementation
 
+
 ## How to
 
 1. Run the "environment_setup.sh" to install the required tools.

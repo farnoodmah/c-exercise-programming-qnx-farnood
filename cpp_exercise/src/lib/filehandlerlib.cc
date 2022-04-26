@@ -49,13 +49,13 @@ void FileHandler::writeFile(const std::vector<unsigned char> & file_input, size_
 
     
 
+
     int err;
    
 
     _fd = open(_file_name.c_str(), O_WRONLY | O_APPEND, _mode);
       
      if(_fd<0){
-         
          std::cout<<strerror(errno)<<std::endl;
         throw IPCException("FileHandler ERROR: Cannot Open the File Correctly");
     }
@@ -113,7 +113,6 @@ std::vector<unsigned char> FileHandler::readFile(){
     std::vector<unsigned char> smallbuffer(_buffer_size);
     size_t ph;
     ph = read(_fd, smallbuffer.data() , _buffer_size);
-
     if(ph>=0){
          smallbuffer.resize(ph);
          return smallbuffer;

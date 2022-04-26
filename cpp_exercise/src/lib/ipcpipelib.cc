@@ -34,8 +34,7 @@ PipeSender::PipeSender(const std::string & filename): _file_name(filename){
          if (ret<0)
          {  
            std::cout<<strerror(errno)<<std::endl;
-           throw IPCException("IPCSender ERROR: Cannot make the Pipe.");
-         }  
+           throw IPCException("IPCSender ERROR: Cannot make the Pipe."); 
           std::cout<<"          Waiting for The Sender... "<<std::endl;
 
          _check_fifo = open(_myfifo, O_WRONLY);
@@ -111,6 +110,7 @@ PipeReceiver::PipeReceiver(const std::string & filename): _file_name(filename){
         std::cout<<"****************************IPCReceiver: PIPE PROTOCOL**************************"<<std::endl;
         std::cout<<"**************************************************************"<<std::endl;
         std::cout<<"**************************************************************"<<std::endl;
+
 
        
       
