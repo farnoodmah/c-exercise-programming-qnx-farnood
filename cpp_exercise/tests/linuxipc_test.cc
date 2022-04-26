@@ -6,6 +6,7 @@
 #include <map>
 #include <vector>
 #include<thread>
+#include <fstream>
 
 #include "gtest/gtest.h"
 
@@ -192,39 +193,132 @@ TEST_F(IPCExceptionTests, CatchingException){
  * 
  */
 
- TEST(PipeTests, SendingSmallTextfile){
 
-  FileHandler pf("pipesender.txt");
-  FileHandler pr("pipereceiver.txt");
+TEST(PipeTests, OpeningOnlyPipeSender){
 
-  std::string samplestring = "Pipe Test Data";
-  std::vector<unsigned char> samplevec;
-  samplevec.insert(samplevec.begin(), samplestring.begin(), samplestring.end());
-  std::vector<unsigned char> sendvec;
-  std::vector<unsigned char> recvec;
-    
-  pf.createFile();
-  pf.writeFile(samplevec,samplevec.size());
-    pf.openForReading();
-   sendvec = pf.readFile();
-   pf.~FileHandler();
-
-  pid_t pid = fork();
-
-  if (pid > 0){
-    PipeSender pips("pipesender.txt");
-
-  }
-  else if (pid == 0){
-    PipeReceiver pipr("pipereceiver2.txt");
-
-     pr.openForReading();
-     recvec = pr.readFile();
-
-    ASSERT_STREQ((char *)sendvec.data(),(char *)recvec.data());
-    
-    }
+  
+  ASSERT_THROW(PipeSender pipes("pipesender.txt"), IPCException);
 
 }
 
+TEST(PipeTests, OpeningOnlyPipeReceiver){
 
+  PipeReceiver piper("pipereceiver.txt");
+  ASSERT_THROW(piper.pipeTransfer(), IPCException);
+
+}
+
+/**
+ * MSGQueueSender & MSGQueueReceiver
+ * 
+ */
+
+
+ void msgqSenderTest(){
+          FileHandler pf("msgqsender.txt");
+          std::string samplestring = "MSGQueue Test Data";
+          std::vector<unsigned char> samplevec;
+          samplevec.insert(samplevec.begin(), samplestring.begin(), samplestring.end());
+    
+          pf.createFile();
+          pf.writeFile(samplevec,samplevec.size());
+          MsgQueueSender msgqs("msgqsender.txt");
+          msgqs.msgqTransfer();
+     }
+
+     void  msgqReceiverTest(){
+          MsgQueueReceiver msgqr("msgqreceiver.txt");
+          msgqr.msgqTransfer();
+     }
+    
+
+ TEST(MSGQueueTests, SendingSmallTextfile){
+
+   std::thread th1(msgqSenderTest);
+   std::thread th2(msgqReceiverTest);
+
+   th1.join();
+   th2.join();
+
+   std::ifstream f1("msgqsender.txt", std::ifstream::binary|std::ifstream::ate);
+   std::ifstream f2("msgqreceiver.txt", std::ifstream::binary|std::ifstream::ate);
+
+   bool check = std::equal(std::istreambuf_iterator<char>(f1.rdbuf()),
+                    std::istreambuf_iterator<char>(),
+                    std::istreambuf_iterator<char>(f2.rdbuf()));
+
+   ASSERT_EQ(1,check);
+
+}
+
+TEST(MSGQueueTests, OpeningOnlyMSGQSender){
+
+   MsgQueueSender msgqs("msgqsender.txt");
+  
+   ASSERT_THROW(msgqs.msgqTransfer(), IPCException);
+
+}
+
+TEST(MSGQueueTests, OpeningOnlyMSGQReceiver){
+
+  
+   ASSERT_THROW(MsgQueueReceiver msgr("msgqreceiver.txt"), IPCException);
+
+}
+
+/**
+ * SharedMemorySender & SharedMemoryReceiver
+ * 
+ */
+
+
+ void shmSenderTest(){
+          FileHandler pf("shmsender.txt");
+          std::string samplestring = "SHM Test Data";
+          std::vector<unsigned char> samplevec;
+          samplevec.insert(samplevec.begin(), samplestring.begin(), samplestring.end());
+    
+          pf.createFile();
+          pf.writeFile(samplevec,samplevec.size());
+          SharedMemorySender shms("shmsender.txt");
+          shms.shmTransfer();
+     }
+
+     void  shmReceiverTest(){
+          SharedMemoryReceiver shmr("shmreceiver.txt");
+          shmr.shmTransfer();
+     }
+    
+
+ TEST(SharedMemoryTests, SendingSmallTextfile){
+
+   std::thread th1(shmSenderTest);
+   std::thread th2(shmReceiverTest);
+
+  th1.join();
+  th2.join();
+
+  std::ifstream f1("shmsender.txt", std::ifstream::binary|std::ifstream::ate);
+  std::ifstream f2("shmreceiver.txt", std::ifstream::binary|std::ifstream::ate);
+
+   bool check = std::equal(std::istreambuf_iterator<char>(f1.rdbuf()),
+                    std::istreambuf_iterator<char>(),
+                    std::istreambuf_iterator<char>(f2.rdbuf()));
+
+  ASSERT_EQ(1,check);
+
+}
+
+TEST(SharedMemoryTests, OpeningOnlySHMSender){
+
+  
+  ASSERT_THROW(SharedMemorySender shms("shmsender.txt"), IPCException);
+
+}
+
+TEST(SharedMemoryTests, OpeningOnlySHMReceiver){
+
+  SharedMemoryReceiver shmr("shmreceiver.txt");  
+  ASSERT_THROW(shmr.shmTransfer(), IPCException);
+
+}

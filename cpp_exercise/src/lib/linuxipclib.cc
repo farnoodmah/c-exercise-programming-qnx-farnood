@@ -16,7 +16,7 @@ ipcprt::Protocol IPC::protocolOptions(const std::string & input){
     if (input == "msgqueue") return ipcprt::Protocol::msgqueue;
     if (input == "shm") return ipcprt::Protocol::shm;
 
-
+    return ipcprt::Protocol::invalid;
 }
 
 /**

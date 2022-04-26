@@ -23,7 +23,8 @@ namespace ipcprt {
     enum Protocol {
         pipe,
         shm,
-        msgqueue
+        msgqueue,
+        invalid
     };
 }
 
