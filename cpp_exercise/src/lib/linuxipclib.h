@@ -15,7 +15,7 @@
 #include <getopt.h>
 #include "ipcpipelib.h"
 #include "ipcmsgqlib.h"
-
+#include "ipcshmlib.h"
 
 
 namespace ipcprt {
@@ -41,7 +41,7 @@ class IPC{
     virtual ~IPC(){};
     virtual void ipcpipe(const std::string & filename)=0;
     virtual void ipcmsgqueue(const std::string & filename)=0;
-    virtual void ipcshm()=0;
+    virtual void ipcshm(const std::string & filename)=0;
     ipcprt::Protocol protocolOptions(const std::string & input);
 
 };
@@ -53,7 +53,7 @@ class IPCSender: public IPC{
     const std::string _protocol;
     void ipcpipe(const std::string & filename) override;
     void ipcmsgqueue(const std::string & filename) override;
-    void ipcshm() override{};
+    void ipcshm(const std::string & filename)   override;
     IPCSender();
 
     public:
@@ -71,7 +71,7 @@ class IPCReceiver: public IPC{
     const std::string _protocol;
     void ipcpipe(const std::string & filename) override;
     void ipcmsgqueue(const std::string & filename) override;
-    void ipcshm() override{};
+    void ipcshm(const std::string & filename) override;
     IPCReceiver();
 
     public:

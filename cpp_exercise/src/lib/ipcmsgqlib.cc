@@ -20,11 +20,12 @@ MsgQueueSender::MsgQueueSender(const std::string & filename): _file_name(filenam
 
         remove(_msg_queue_name.c_str());
         ret = mq_unlink(_msg_queue_name.c_str());
-
    
         //setting the max number of msg and msg size
         _attrs.mq_maxmsg = _msg_queue_maxnummsg;
         _attrs.mq_msgsize = _msg_queue_msgsize;
+
+
 
         //opening the file
         FileHandler fd(_file_name);
@@ -33,6 +34,7 @@ MsgQueueSender::MsgQueueSender(const std::string & filename): _file_name(filenam
         std::cout<<"          File Name: "<<_file_name<<std::endl;
         std::cout<<"          File Size: "<<fd.getSize()<<" bytes"<<std::endl;
         std::cout<<"          Loading the File. Please Wait..."<<std::endl;
+
 
 
     
@@ -130,12 +132,13 @@ MsgQueueReceiver::MsgQueueReceiver(const std::string & filename): _file_name(fil
             //receiving and writing the data in 4096 size
 
             std::vector<unsigned char> buffer (4096);
-		   	clock_gettime(CLOCK_REALTIME, &_ts);
+		   	  clock_gettime(CLOCK_REALTIME, &_ts);
 
             //setting the time for 10 seconds so if no data received after 10 seconds it will break the loop   
      	    _ts.tv_sec += 10;	
                    
             _receive_size = mq_timedreceive(_msg_queue,reinterpret_cast<char *>(buffer.data()),_msg_queue_msgsize,&_priority,&_ts);
+
 
             if(_receive_size<=0){
 

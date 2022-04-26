@@ -108,6 +108,8 @@ TEST(CommandOptionTests, GivingOnlyProtocolAsArgument){
 
   char cmdlineTemp[][4096] = {"","--pipe"};
   char *argv[] = {cmdlineTemp[0], cmdlineTemp[1], NULL};
+
+
   
 ASSERT_THROW( CommandOption co("ipcsender",2,argv), IPCException);
  
@@ -150,6 +152,18 @@ char *argv[] = {cmdlineTemp[0], cmdlineTemp[1], cmdlineTemp[2], cmdlineTemp[3], 
 
 }
 
+TEST(CommandOptionTests, GettingSHMProtocol){
+  
+  char cmdlineTemp[][4096] = {"","--shm","--file","test.txt"};
+  char *argv[] = {cmdlineTemp[0], cmdlineTemp[1], cmdlineTemp[2], cmdlineTemp[3], NULL};
+
+  CommandOption co("ipcsender",4,argv);
+  std::vector<std::string> outputs = co.getCommand();
+  ASSERT_EQ(outputs[0],"test.txt");
+  ASSERT_EQ(outputs[1],"shm");
+
+}
+
 
 /**
  * IPCException
@@ -182,7 +196,6 @@ TEST_F(IPCExceptionTests, CatchingException){
   FileHandler pf("pipesender.txt");
   FileHandler pr("pipereceiver.txt");
 
-
   std::string samplestring = "Pipe Test Data";
   std::vector<unsigned char> samplevec;
   samplevec.insert(samplevec.begin(), samplestring.begin(), samplestring.end());
@@ -212,4 +225,3 @@ TEST_F(IPCExceptionTests, CatchingException){
     }
 
 }
-

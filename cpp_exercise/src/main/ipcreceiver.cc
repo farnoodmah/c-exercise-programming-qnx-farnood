@@ -3,7 +3,6 @@
 #include "src/lib/ipcexceptionlib.h"
 
 
-
 int main(int argc,char *argv[]) {
 
     std::vector<std::string> commandline;

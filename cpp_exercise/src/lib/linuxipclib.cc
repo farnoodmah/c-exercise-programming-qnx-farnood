@@ -56,7 +56,20 @@ void IPCSender::ipcmsgqueue(const std::string & filename){
 
 }
 
+/**
+ * @brief IPCSender SharedMemorySender Protocol
+ * 
+ * 
+ * 
+ */
 
+
+void IPCSender::ipcshm(const std::string & filename){
+     
+      std::cout<<"sender shared memory"<<::std::endl;
+      SharedMemorySender shms(filename);
+
+}
 
 /**
  * @brief IPCSender Constructor for Choosing the one of the protocols
@@ -75,6 +88,10 @@ IPCSender::IPCSender(const std::string & filename, const std::string  & protocol
     case ipcprt::Protocol::msgqueue:
         ipcmsgqueue(_file_name);
         break;
+     case ipcprt::Protocol::shm:
+        ipcshm(_file_name);
+        break;
+    
     default:
         throw IPCException("IPCReceiver ERROR:UNKNOWN IPC PROTOCOL");
         break;
@@ -115,7 +132,18 @@ void IPCReceiver::ipcmsgqueue(const std::string & filename){
 }
 
 /**
+ * @brief IPCReceiver SharedMemory Protocol
+ * */
 
+void IPCReceiver::ipcshm(const std::string & filename){
+
+  std::cout<<"this is receiver shared memory"<<std::endl;
+  SharedMemoryReceiver shmr(filename);
+
+}
+
+
+/**
  * @brief IPCReceiver Choosing Between the Protocols
  * */
 
@@ -127,6 +155,9 @@ IPCReceiver::IPCReceiver(const std::string & filename, const std::string  & prot
         break;
     case ipcprt::Protocol::msgqueue:
         ipcmsgqueue(_file_name);
+        break;
+    case ipcprt::Protocol::shm: 
+        ipcshm(_file_name);
         break;
     default:
         throw IPCException("IPCReceiver ERROR:UNKNOWN IPC PROTOCOL");
@@ -165,7 +196,7 @@ CommandOption::CommandOption(const std::string & program, int argc, char *argv[]
 			{"help", no_argument, NULL, 'h'},
 			{"msgqueue", no_argument, NULL, 'q'},
 			{"pipe", no_argument, NULL, 'p'},
-			{"shm", required_argument, NULL, 's'},
+			{"shm",  no_argument, NULL, 's'},
 			{"file", required_argument, NULL, 'f'},
 			{ 0, 0, 0, 0 }
       };
@@ -188,7 +219,7 @@ CommandOption::CommandOption(const std::string & program, int argc, char *argv[]
               _output = "msgqueue";
                break; 
               case 's':
-              throw IPCException("unrecognized command. please use \"--help\" for guide.\n");
+              _output = "shm";
                 break;
                case 'f':
                 _filename = optarg;
@@ -255,8 +286,8 @@ void  CommandOption::printHelp(){
 					   _program << " is used to "<< ((_program == _ipcreceiver) ? "receive" : "send") << " files between a client "<< "(" + _ipcsender + ")" << " and server " << "(" + _ipcreceiver + ")" <<  " via different IPC methods (queue, pipe, and shm).\n" <<
 						"Primary commands:\n\n" <<
             "--pipe        For "<<((_program == _ipcreceiver) ? "receiving" : "sending") <<"  files with the pipe option.\n" <<
-						"--msgqueue       For "<<((_program == _ipcreceiver) ? "receiving" : "sending") <<" files with the message queue option.\n" <<
-						"--shm         For "<<((_program == _ipcreceiver) ? "receiving" : "sending") <<"  files by using a shared memory buffer. (*not implemented)\n\n" <<
+						"--queue       For "<<((_program == _ipcreceiver) ? "receiving" : "sending") <<" files with the message queue option.\n" <<
+						"--shm         For "<<((_program == _ipcreceiver) ? "receiving" : "sending") <<"  files by using a shared memory buffer.\n\n" <<
 						"--help        lists available commands and guides.\n\n";
    
  } 
