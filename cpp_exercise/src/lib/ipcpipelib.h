@@ -3,6 +3,7 @@
 
 #include "filehandlerlib.h"
 
+
 #include <string>
 #include <vector>
 #include <iostream>
@@ -33,7 +34,8 @@ class PipeSender{
 
     public:
     PipeSender(const std::string & filename);
-    virtual ~PipeSender();
+     ~PipeSender();
+
 
 };
 
@@ -50,7 +52,8 @@ class PipeReceiver{
 
     public:
     PipeReceiver(const std::string & filename);
-    virtual ~PipeReceiver();
+    ~PipeReceiver();
+
 
 };
 
