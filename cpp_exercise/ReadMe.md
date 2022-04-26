@@ -18,10 +18,10 @@ PIPE, MESSAGE QUEUE, and SHARED MEMORY
 - [x] IPCReceiver Implementation
 - [x] Pipe Sender Implementation
 - [x] Pipe Receiver Implementation
-- [ ] Message Queue Receiver Implementation
-- [ ] Message Queue Sender Implementation
-- [ ] SHM Sender Implementation
-- [ ] SHM Receiver Implementation
+- [x] Message Queue Receiver Implementation
+- [x] Message Queue Sender Implementation
+- [x] SHM Sender Implementation
+- [x] SHM Receiver Implementation
 
 ## How to
 

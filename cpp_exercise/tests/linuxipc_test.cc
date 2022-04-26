@@ -8,6 +8,7 @@
 #include<thread>
 #include <fstream>
 
+
 #include "gtest/gtest.h"
 
 
@@ -110,8 +111,6 @@ TEST(CommandOptionTests, GivingOnlyProtocolAsArgument){
   char cmdlineTemp[][4096] = {"","--pipe"};
   char *argv[] = {cmdlineTemp[0], cmdlineTemp[1], NULL};
 
- 
-   ;
   
 ASSERT_THROW( CommandOption co("ipcsender",2,argv), IPCException);
  
@@ -192,7 +191,6 @@ TEST_F(IPCExceptionTests, CatchingException){
  * PipeSender & PipeReceiver
  * 
  */
-
 
 TEST(PipeTests, OpeningOnlyPipeSender){
 
@@ -322,3 +320,5 @@ TEST(SharedMemoryTests, OpeningOnlySHMReceiver){
   ASSERT_THROW(shmr.shmTransfer(), IPCException);
 
 }
+
+

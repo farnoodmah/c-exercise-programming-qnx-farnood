@@ -11,6 +11,7 @@
 
 MsgQueueSender::MsgQueueSender(const std::string & filename): _file_name(filename){
 
+
   
         //removing and unlinking from old shared memories
 
@@ -50,6 +51,7 @@ void MsgQueueSender::msgqTransfer(){
 
 
     
+
 
 
 
@@ -119,6 +121,7 @@ void MsgQueueSender::msgqTransfer(){
                 }
                 sleep(5);
         }
+
       
 
        std::cout<<"          Successfully written to the MSGQueue "<<std::endl;
@@ -228,7 +231,7 @@ void MsgQueueReceiver::msgqTransfer(){
         std::cout<<"**************************************************************"<<std::endl;
         std::cout<<"**************************************************************"<<std::endl;  
 
-}
+
 
 MsgQueueReceiver::~MsgQueueReceiver(){
 
