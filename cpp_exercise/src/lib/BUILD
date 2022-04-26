@@ -26,6 +26,7 @@ cc_library(
     name = "IPCEXCEPTIONLib",
     hdrs = ["ipcexceptionlib.h"],
     visibility = ["//visibility:public"]
+
 )
 
 cc_library(
@@ -33,4 +34,5 @@ cc_library(
     srcs = ["ipcmsgqlib.cc"],
     hdrs = ["ipcmsgqlib.h","filehandlerlib.h","ipcexceptionlib.h"],
     visibility = ["//visibility:public"]
+
 )

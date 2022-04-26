@@ -21,6 +21,7 @@
  */
 
 class FileHandler{
+
     private:
         const std::string _file_name; //input file name
         int _fd;  //file desriptor
@@ -42,6 +43,7 @@ class FileHandler{
         std::vector<unsigned char> readFile();
         void openForReading();
         size_t getSize();
+
 
   
 };

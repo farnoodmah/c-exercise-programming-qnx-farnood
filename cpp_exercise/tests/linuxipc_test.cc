@@ -108,9 +108,6 @@ TEST(CommandOptionTests, GivingOnlyProtocolAsArgument){
 
   char cmdlineTemp[][4096] = {"","--pipe"};
   char *argv[] = {cmdlineTemp[0], cmdlineTemp[1], NULL};
-
- 
-   ;
   
 ASSERT_THROW( CommandOption co("ipcsender",2,argv), IPCException);
  
@@ -185,6 +182,7 @@ TEST_F(IPCExceptionTests, CatchingException){
   FileHandler pf("pipesender.txt");
   FileHandler pr("pipereceiver.txt");
 
+
   std::string samplestring = "Pipe Test Data";
   std::vector<unsigned char> samplevec;
   samplevec.insert(samplevec.begin(), samplestring.begin(), samplestring.end());
@@ -214,5 +212,4 @@ TEST_F(IPCExceptionTests, CatchingException){
     }
 
 }
-
 

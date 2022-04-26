@@ -146,6 +146,8 @@ if(err<0){
 
 
 
+
+
 if(file_stat.st_size<0){
          if(err<0){
          std::cout<<strerror(errno)<<std::endl;
@@ -154,6 +156,7 @@ if(file_stat.st_size<0){
 }
 
 _file_size = file_stat.st_size;
+
 
 return _file_size;
 

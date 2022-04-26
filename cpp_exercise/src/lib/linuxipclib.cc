@@ -57,6 +57,7 @@ void IPCSender::ipcmsgqueue(const std::string & filename){
 }
 
 
+
 /**
  * @brief IPCSender Constructor for Choosing the one of the protocols
  * 
@@ -114,6 +115,7 @@ void IPCReceiver::ipcmsgqueue(const std::string & filename){
 }
 
 /**
+
  * @brief IPCReceiver Choosing Between the Protocols
  * */
 
@@ -137,6 +139,7 @@ IPCReceiver::IPCReceiver(const std::string & filename, const std::string  & prot
  * @brief Command Option Class
  * 
  */
+
 
 
 /**

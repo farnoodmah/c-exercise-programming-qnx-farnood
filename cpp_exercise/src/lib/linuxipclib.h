@@ -17,6 +17,7 @@
 #include "ipcmsgqlib.h"
 
 
+
 namespace ipcprt {
 
     enum Protocol {
