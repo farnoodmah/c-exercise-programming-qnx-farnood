@@ -10,6 +10,10 @@ void handler(int Sig)
     abort_eh = 1;
 }
 
+static void alaramHandler(int signo){
+  (void)signo;
+  throw IPCException("IPCSender: Disconnected form the IPCReceiver");
+}
 
 PipeSender::PipeSender(const std::string & filename): _file_name(filename){
 
@@ -45,7 +49,10 @@ PipeSender::PipeSender(const std::string & filename): _file_name(filename){
 
 void PipeSender::pipeTransfer(){
 
-       
+        struct sigaction act;
+        memset(&act, 0, sizeof act);
+        sigaction(SIGALRM, &act, NULL);
+
 
         FileHandler fd(_file_name);
 
@@ -77,15 +84,19 @@ void PipeSender::pipeTransfer(){
           }
 
           if (_read_file.size()>0){
+          
+          alarm(5);
 
           //writing to the pipe    
           err = write(_check_fifo,_read_file.data(),_read_file.size());
           
+          signal(SIGALRM, alaramHandler);
+
           if(err<0){
             throw IPCException("IPCSender ERROR: Cannot connect to the IPCReceiver.");
           }
             
-         
+          alarm(0);
              
           }
          

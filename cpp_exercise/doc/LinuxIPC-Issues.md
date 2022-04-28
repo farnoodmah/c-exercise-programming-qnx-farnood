@@ -11,7 +11,7 @@ __________________
 
 ### Sending  a not existing File [SOLVED]
 
-This program is able to respond properly via an proper exception.
+This program is able to respond properly via a proper exception.
 __________________
 
 
@@ -22,7 +22,7 @@ __________________
 
 ### IPCSender or IPCReceiver runs indefinitely when only one of them is launched [SOLVED]
 
-All the protocols would run for a limited of time when only one of them (IPCSender or IPCReceiver)  launches. It also throw an exception because not connecting to the client or server.
+All the protocols would run for a limited of time when only one of them (IPCSender or IPCReceiver)  launches. It also throws an exception because of not connecting to the client or server.
 __________________
 
 ### SharedMemory and MsgQueue destructors do not work correctly [SOLVED]
@@ -30,9 +30,9 @@ __________________
 All the transaction functions of protocols moved to another function and only the initialization remained in the constructor.
 __________________
 
-### Terminating one of the programs in the middle of file transfer has not effect on the other side [SOLVED FOR SHAREDMEMORY AND MSGQUEUE]
+### Terminating one of the programs in the middle of the file transfer has not effect on the other side [SOLVED]
 
-If one of the programs get terminated during the file the transaction, the other side would through an exception.
+If one of the programs get terminated during the file transaction, the other side would throw an exception.
 
 __________________
 
