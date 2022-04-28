@@ -11,7 +11,6 @@
 
 
 ipcprt::Protocol IPC::protocolOptions(const std::string & input){
-  
     if (input == "pipe") return ipcprt::Protocol::pipe;
     if (input == "msgqueue") return ipcprt::Protocol::msgqueue;
     if (input == "shm") return ipcprt::Protocol::shm;
@@ -144,7 +143,6 @@ void IPCReceiver::ipcshm(const std::string & filename){
  * */
 
 IPCReceiver::IPCReceiver(const std::string & filename, const std::string  & protocol): _file_name(filename), _protocol(protocol){
-
      switch (protocolOptions(_protocol))
     {
     case ipcprt::Protocol::pipe:

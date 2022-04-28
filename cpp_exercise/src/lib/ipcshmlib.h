@@ -59,7 +59,6 @@ class SharedMemoryReceiver {
 
     private:
      
-
     const std::string _file_name;;
     const int _shm_size = sizeof(_shm_data_struct);
     int _shm_fd = -1; 

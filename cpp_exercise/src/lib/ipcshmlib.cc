@@ -150,6 +150,7 @@ SharedMemoryReceiver::SharedMemoryReceiver(const std::string filename): _file_na
         std::cout<<"**************************************************************"<<std::endl;
 
  
+
      sem_unlink(semaphoresender_name.c_str());
      sem_unlink(semaphorereceiver_name.c_str());
      shm_unlink(shm_name.c_str());
@@ -188,7 +189,7 @@ SharedMemoryReceiver::SharedMemoryReceiver(const std::string filename): _file_na
         std::cout<<strerror(errno)<<std::endl;
         throw IPCException("IPCReceiver ERROR: Cannot map the Shared Memory.");
     }
-    
+   
     
 
 }
@@ -220,7 +221,6 @@ void SharedMemoryReceiver::shmTransfer(){
             if (errno == ETIMEDOUT){
                 
                 throw IPCException("          IPCReceiver ERROR: Cannot connect to IPCSender.");
-                
             }
             }
 

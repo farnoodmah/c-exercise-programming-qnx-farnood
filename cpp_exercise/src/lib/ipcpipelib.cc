@@ -23,7 +23,6 @@ PipeSender::PipeSender(const std::string & filename): _file_name(filename){
         std::cout<<"**************************************************************"<<std::endl;
 
 
-
         _check_fifo = -1;
 
       
@@ -228,6 +227,7 @@ void PipeReceiver::pipeTransfer(){
   
   close(_fifo);
   remove(_myfifo);
+
 
   
 }
