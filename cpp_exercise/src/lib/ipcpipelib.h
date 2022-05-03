@@ -12,16 +12,12 @@
 #include <signal.h>
 #include <sys/types.h>
 
-
-
-
 const std::string pipe_fifo_name = "/tmp/myfifo";
 
 
 class PipeSender{
 
     private:
-
     const std::string _file_name; 
     size_t _file_size;
     const char * _myfifo = pipe_fifo_name.c_str();
@@ -32,32 +28,26 @@ class PipeSender{
     int _counter = 0;
     PipeSender();
     
-
     public:
-
     PipeSender(const std::string & filename);
     void pipeTransfer();
      ~PipeSender();
-
 };
 
 
 class PipeReceiver{
     private:
-    
-    const std::string _file_name;
-    const char * _myfifo = pipe_fifo_name.c_str();
-    long unsigned int _buffer_size = file_data_read_size;
-    int _fifo = -1;
-    size_t bytesread = 1;
-    PipeReceiver();
-
+        const std::string _file_name;
+        const char * _myfifo = pipe_fifo_name.c_str();
+        long unsigned int _buffer_size = file_data_read_size;
+        int _fifo = -1;
+        size_t bytesread = 1;
+        PipeReceiver();
 
     public:
-    PipeReceiver(const std::string & filename);
-    void pipeTransfer();
-    ~PipeReceiver();
-
+        PipeReceiver(const std::string & filename);
+        void pipeTransfer();
+        ~PipeReceiver();
 };
 
 

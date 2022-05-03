@@ -29,15 +29,15 @@ class FileHandlerTests : public ::testing::Test{
 
 
 
-  TEST_F(FileHandlerTests, ReadingFromNotExistingFile){
+TEST_F(FileHandlerTests, ReadingFromNotExistingFile){
 
     remove("thisfiledoesnotexist.txt");
 
     ASSERT_THROW(nonexFile.readFile(), IPCException);
     
-  }
+}
 
-   TEST_F(FileHandlerTests, GettingTheCorrectSize){
+TEST_F(FileHandlerTests, GettingTheCorrectSize){
      samplevec.insert(samplevec.begin(), samplestring.begin(), samplestring.end());
     
      txtFile.createFile();
@@ -45,10 +45,9 @@ class FileHandlerTests : public ::testing::Test{
          
      ASSERT_EQ(txtFile.getSize(), samplevec.size() );
 
-  }
+}
 
-
-   TEST_F(FileHandlerTests, ReadingAndWritingTheCorrectData){
+TEST_F(FileHandlerTests, ReadingAndWritingTheCorrectData){
 
       samplevec.insert(samplevec.begin(), samplestring.begin(), samplestring.end());
       std::vector<unsigned char> testvec;
@@ -195,7 +194,7 @@ TEST_F(IPCExceptionTests, CatchingException){
           samplevec.insert(samplevec.begin(), samplestring.begin(), samplestring.end());
     
           pf.createFile();
-          pf.writeFile(samplevec,samplevec.size()+1);
+          pf.writeFile(samplevec,samplestring.size()+1);
           PipeSender pipes("pipesender.txt");
           pipes.pipeTransfer();
   }

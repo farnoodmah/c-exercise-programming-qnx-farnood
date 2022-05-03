@@ -32,7 +32,6 @@ class FileHandler{
         size_t _file_size; // the size of the file
         size_t _buffer_size = 4096; //the size of the chunks in reading the file
         std::vector<unsigned char> _readbuffer; // the read data from  file
-
         const mode_t  _mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH; // mode for opening the file
 
     public:
@@ -43,9 +42,7 @@ class FileHandler{
         void removeFile();
         std::vector<unsigned char> readFile();
         void openForReading();
-        size_t getSize();
-
-  
+        size_t getSize();  
 };
 
 #endif

@@ -19,7 +19,6 @@
 
 
 namespace ipcprt {
-
     enum Protocol {
         invalid,
         pipe,
@@ -27,57 +26,48 @@ namespace ipcprt {
         msgqueue
     };
 }
-
- 
-
 /**
  *      IPC Class
  */
 
 class IPC{
-    
+
     protected:
-    IPC(){};
-    virtual ~IPC(){};
-    virtual void ipcpipe(const std::string & filename)=0;
-    virtual void ipcmsgqueue(const std::string & filename)=0;
-    virtual void ipcshm(const std::string & filename)=0;
-    ipcprt::Protocol protocolOptions(const std::string & input);
-
+        IPC(){};
+        virtual ~IPC(){};
+        virtual void ipcpipe(const std::string & filename)=0;
+        virtual void ipcmsgqueue(const std::string & filename)=0;
+        virtual void ipcshm(const std::string & filename)=0;
+        ipcprt::Protocol protocolOptions(const std::string & input);
 };
-
-
 class IPCSender: public IPC{
     private:
-    const std::string _file_name;
-    const std::string _protocol;
-    void ipcpipe(const std::string & filename) override;
-    void ipcmsgqueue(const std::string & filename) override;
-    void ipcshm(const std::string & filename)   override;
-    IPCSender();
+        const std::string _file_name;
+        const std::string _protocol;
+        void ipcpipe(const std::string & filename) override;
+        void ipcmsgqueue(const std::string & filename) override;
+        void ipcshm(const std::string & filename)   override;
+        IPCSender();
 
     public:
-    IPCSender(const std::string & filename, const std::string  & protocol); 
-    ~IPCSender(){};
-  
-
+        IPCSender(const std::string & filename, const std::string  & protocol); 
+        ~IPCSender(){};
 };
 
 
 class IPCReceiver: public IPC{
-
+    
     private:
-    const std::string _file_name;
-    const std::string _protocol;
-    void ipcpipe(const std::string & filename) override;
-    void ipcmsgqueue(const std::string & filename) override;
-    void ipcshm(const std::string & filename) override;
-    IPCReceiver();
+        const std::string _file_name;
+        const std::string _protocol;
+        void ipcpipe(const std::string & filename) override;
+        void ipcmsgqueue(const std::string & filename) override;
+        void ipcshm(const std::string & filename) override;
+        IPCReceiver();
 
     public:
-    IPCReceiver(const std::string & filename, const std::string  & protocol); 
-    ~IPCReceiver(){};
-
+        IPCReceiver(const std::string & filename, const std::string  & protocol); 
+        ~IPCReceiver(){};
 };
 
 
@@ -95,13 +85,10 @@ class CommandOption{
     std::vector<std::string> _options;
     std::string _help_message;
     std::string _output;
-
     CommandOption();
-    
     void printHelp();
     
     public:
-   
     CommandOption(const std::string & program, int argc, char *argv[]);
     std::vector<std::string> getCommand();
     ~CommandOption();
