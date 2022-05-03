@@ -9,7 +9,7 @@ bazel build --cxxopt='-std=c++14' //src/main:ipcreceiver --linkopt="-lrt"   --li
 
 echo "Running the Test Cases\n"
 
-bazel test --cxxopt='-std=c++14' //tests:linuxipc_test --linkopt="-lrt"
+bazel test //tests:linuxipc_test --linkopt="-lrt" --linkopt="-lpthread"
 
 rm -r -f binary_output
 rm -r -f test_output
@@ -22,4 +22,3 @@ cp bazel-bin/src/main/ipcsender binary_output
 cp bazel-testlogs/tests/linuxipc_test/test.log test_output
 
 bazel clean
-

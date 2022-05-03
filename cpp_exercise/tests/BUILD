@@ -6,11 +6,11 @@ cc_test(
     srcs = ["linuxipc_test.cc"],
     deps = [
         "//src/lib:LINUXIPCLib",
-         "//src/lib:FILEHANDLERLib",
-          "//src/lib:IPCPIPELib",
-          "//src/lib:IPCMSGQLib",
-           "//src/lib:IPCSHMLib",
-          "//src/lib:IPCEXCEPTIONLib",
+        "//src/lib:FILEHANDLERLib",
+        "//src/lib:IPCPIPELib",
+        "//src/lib:IPCMSGQLib",
+        "//src/lib:IPCSHMLib",
+        "//src/lib:IPCEXCEPTIONLib",
         "@googletest//:gtest_main",
     ],
 )

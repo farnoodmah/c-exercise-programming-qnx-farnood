@@ -6,6 +6,8 @@
 #include <map>
 #include <vector>
 #include<thread>
+#include <fstream>
+
 
 #include "gtest/gtest.h"
 
@@ -27,57 +29,57 @@ class FileHandlerTests : public ::testing::Test{
 
 
 
-  TEST_F(FileHandlerTests, ReadingFromNotExistingFile){
+TEST_F(FileHandlerTests, ReadingFromNotExistingFile){
 
     remove("thisfiledoesnotexist.txt");
 
     ASSERT_THROW(nonexFile.readFile(), IPCException);
     
-  }
+}
 
-   TEST_F(FileHandlerTests, GettingTheCorrectSize){
+TEST_F(FileHandlerTests, GettingTheCorrectSize){
      samplevec.insert(samplevec.begin(), samplestring.begin(), samplestring.end());
     
-      txtFile.createFile();
-       txtFile.writeFile(samplevec,samplevec.size());
+     txtFile.createFile();
+     txtFile.writeFile(samplevec,samplevec.size());
          
-       ASSERT_EQ(txtFile.getSize(), samplevec.size() );
+     ASSERT_EQ(txtFile.getSize(), samplevec.size() );
 
-  }
+}
 
+TEST_F(FileHandlerTests, ReadingAndWritingTheCorrectData){
 
-   TEST_F(FileHandlerTests, ReadingAndWritingTheCorrectData){
-     samplevec.insert(samplevec.begin(), samplestring.begin(), samplestring.end());
-     std::vector<unsigned char> testvec;
+      samplevec.insert(samplevec.begin(), samplestring.begin(), samplestring.end());
+      std::vector<unsigned char> testvec;
   
     
-        txtFile.createFile();
+      txtFile.createFile();
 
-        txtFile.writeFile(samplevec,samplevec.size());
-        txtFile.openForReading();
-        testvec = txtFile.readFile();
+      txtFile.writeFile(samplevec,samplevec.size());
+      txtFile.openForReading();
+      testvec = txtFile.readFile();
         
         
       remove("testfile.txt"); 
-       ASSERT_EQ(testvec, samplevec );
+      ASSERT_EQ(testvec, samplevec );
 
   }
 
 
    TEST_F(FileHandlerTests, RemovingFile){
 
-    samplevec.insert(samplevec.begin(), samplestring.begin(), samplestring.end());
+      samplevec.insert(samplevec.begin(), samplestring.begin(), samplestring.end());
     
-    std::vector<unsigned char> testvec;
+      std::vector<unsigned char> testvec;
     
-        txtFile.createFile();
-        txtFile.writeFile(samplevec,samplevec.size()+1);
-        txtFile.removeFile();
+      txtFile.createFile();
+      txtFile.writeFile(samplevec,samplevec.size()+1);
+      txtFile.removeFile();
         
         
-    ASSERT_THROW( txtFile.openForReading();, IPCException);
+      ASSERT_THROW( txtFile.openForReading();, IPCException);
        
-    }
+  }
 
  
 
@@ -109,9 +111,7 @@ TEST(CommandOptionTests, GivingOnlyProtocolAsArgument){
   char cmdlineTemp[][4096] = {"","--pipe"};
   char *argv[] = {cmdlineTemp[0], cmdlineTemp[1], NULL};
 
-
-  
-ASSERT_THROW( CommandOption co("ipcsender",2,argv), IPCException);
+  ASSERT_THROW( CommandOption co("ipcsender",2,argv), IPCException);
  
 }
 
@@ -121,28 +121,24 @@ TEST(CommandOptionTests, GivingWrongCommand){
  
   char cmdlineTemp[][4096] = {"","--wrongcommand"};
   char *argv[] = {cmdlineTemp[0], cmdlineTemp[1], NULL};
-ASSERT_THROW(CommandOption co("ipcsender",2,argv), IPCException);
+  ASSERT_THROW(CommandOption co("ipcsender",2,argv), IPCException);
   
 }
 
 TEST(CommandOptionTests, GivingOnlyFileAsArgument){
 
   char cmdlineTemp[][4096] = {"","--file","test.txt"};
-   char *argv[] = {cmdlineTemp[0], cmdlineTemp[1],cmdlineTemp[2],cmdlineTemp[3], NULL};
+  char *argv[] = {cmdlineTemp[0], cmdlineTemp[1],cmdlineTemp[2],cmdlineTemp[3], NULL};
   
+  ASSERT_THROW( CommandOption co("ipcsender",4,argv), IPCException);
 
-
-   
-  
-  
-ASSERT_THROW( CommandOption co("ipcsender",4,argv), IPCException);
 }
 
 
 TEST(CommandOptionTests, GettingMsgQueueProtocol){
   
  char cmdlineTemp[][4096] = {"","--msgqueue","--file","test.txt"};
-char *argv[] = {cmdlineTemp[0], cmdlineTemp[1], cmdlineTemp[2], cmdlineTemp[3], NULL};
+ char *argv[] = {cmdlineTemp[0], cmdlineTemp[1], cmdlineTemp[2], cmdlineTemp[3], NULL};
   
 
   CommandOption co("ipcsender",4,argv);
@@ -182,7 +178,7 @@ class IPCExceptionTests : public ::testing::Test{
  };
 
 TEST_F(IPCExceptionTests, CatchingException){
-   ASSERT_THROW(broken(), IPCException);
+    ASSERT_THROW(broken(), IPCException);
  }
 
 
@@ -191,37 +187,169 @@ TEST_F(IPCExceptionTests, CatchingException){
  * 
  */
 
- TEST(PipeTests, SendingSmallTextfile){
-
-  FileHandler pf("pipesender.txt");
-  FileHandler pr("pipereceiver.txt");
-
-  std::string samplestring = "Pipe Test Data";
-  std::vector<unsigned char> samplevec;
-  samplevec.insert(samplevec.begin(), samplestring.begin(), samplestring.end());
-  std::vector<unsigned char> sendvec;
-  std::vector<unsigned char> recvec;
+ void pipeSenderTest(){
+          FileHandler pf("pipesender.txt");
+          std::string samplestring = "Pipe Test Data";
+          std::vector<unsigned char> samplevec;
+          samplevec.insert(samplevec.begin(), samplestring.begin(), samplestring.end());
     
-  pf.createFile();
-  pf.writeFile(samplevec,samplevec.size());
-    pf.openForReading();
-   sendvec = pf.readFile();
-   pf.~FileHandler();
-
-  pid_t pid = fork();
-
-  if (pid > 0){
-    PipeSender pips("pipesender.txt");
-
+          pf.createFile();
+          pf.writeFile(samplevec,samplestring.size()+1);
+          PipeSender pipes("pipesender.txt");
+          pipes.pipeTransfer();
   }
-  else if (pid == 0){
-    PipeReceiver pipr("pipereceiver2.txt");
 
-     pr.openForReading();
-     recvec = pr.readFile();
+  void  pipeReceiverTest(){
+          PipeReceiver piper("pipereceiver.txt");
+          piper.pipeTransfer();
+     }
 
-    ASSERT_STREQ((char *)sendvec.data(),(char *)recvec.data());
-    
-    }
+TEST(PipeTests, SendingSmallTextfile){
+
+   std::thread th1(pipeSenderTest);
+   std::thread th2(pipeReceiverTest);
+
+   th1.join();
+   th2.join();
+
+   std::ifstream f1("pipesender.txt", std::ifstream::binary|std::ifstream::ate);
+   std::ifstream f2("pipereceiver.txt", std::ifstream::binary|std::ifstream::ate);
+
+   bool check = std::equal(std::istreambuf_iterator<char>(f1.rdbuf()),
+                    std::istreambuf_iterator<char>(),
+                    std::istreambuf_iterator<char>(f2.rdbuf()));
+
+   ASSERT_EQ(1,check);
 
 }
+
+TEST(PipeTests, OpeningOnlyPipeSender){
+
+  
+  ASSERT_THROW(PipeSender pipes("pipesender.txt"), IPCException);
+
+}
+
+TEST(PipeTests, OpeningOnlyPipeReceiver){
+
+  PipeReceiver piper("pipereceiver.txt");
+  ASSERT_THROW(piper.pipeTransfer(), IPCException);
+
+}
+
+/**
+ * MSGQueueSender & MSGQueueReceiver
+ * 
+ */
+
+
+ void msgqSenderTest(){
+          FileHandler pf("msgqsender.txt");
+          std::string samplestring = "MSGQueue Test Data";
+          std::vector<unsigned char> samplevec;
+          samplevec.insert(samplevec.begin(), samplestring.begin(), samplestring.end());
+    
+          pf.createFile();
+          pf.writeFile(samplevec,samplevec.size()+1);
+          MsgQueueSender msgqs("msgqsender.txt");
+          msgqs.msgqTransfer();
+  }
+
+  void  msgqReceiverTest(){
+          MsgQueueReceiver msgqr("msgqreceiver.txt");
+          msgqr.msgqTransfer();
+     }
+    
+
+ TEST(MSGQueueTests, SendingSmallTextfile){
+
+   std::thread th1(msgqSenderTest);
+   std::thread th2(msgqReceiverTest);
+
+   th1.join();
+   th2.join();
+
+   std::ifstream f1("msgqsender.txt", std::ifstream::binary|std::ifstream::ate);
+   std::ifstream f2("msgqreceiver.txt", std::ifstream::binary|std::ifstream::ate);
+
+   bool check = std::equal(std::istreambuf_iterator<char>(f1.rdbuf()),
+                    std::istreambuf_iterator<char>(),
+                    std::istreambuf_iterator<char>(f2.rdbuf()));
+
+   ASSERT_EQ(1,check);
+
+}
+
+TEST(MSGQueueTests, OpeningOnlyMSGQSender){
+
+   MsgQueueSender msgqs("msgqsender.txt");
+  
+   ASSERT_THROW(msgqs.msgqTransfer(), IPCException);
+
+}
+
+TEST(MSGQueueTests, OpeningOnlyMSGQReceiver){
+
+  
+   ASSERT_THROW(MsgQueueReceiver msgr("msgqreceiver.txt"), IPCException);
+
+}
+
+/**
+ * SharedMemorySender & SharedMemoryReceiver
+ * 
+ */
+
+
+ void shmSenderTest(){
+          FileHandler pf("shmsender.txt");
+          std::string samplestring = "SHM Test Data";
+          std::vector<unsigned char> samplevec;
+          samplevec.insert(samplevec.begin(), samplestring.begin(), samplestring.end());
+    
+          pf.createFile();
+          pf.writeFile(samplevec,samplevec.size()+1);
+          SharedMemorySender shms("shmsender.txt");
+          shms.shmTransfer();
+     }
+
+     void  shmReceiverTest(){
+          SharedMemoryReceiver shmr("shmreceiver.txt");
+          shmr.shmTransfer();
+     }
+    
+
+ TEST(SharedMemoryTests, SendingSmallTextfile){
+
+   std::thread th1(shmSenderTest);
+   std::thread th2(shmReceiverTest);
+
+  th1.join();
+  th2.join();
+
+  std::ifstream f1("shmsender.txt", std::ifstream::binary|std::ifstream::ate);
+  std::ifstream f2("shmreceiver.txt", std::ifstream::binary|std::ifstream::ate);
+
+   bool check = std::equal(std::istreambuf_iterator<char>(f1.rdbuf()),
+                    std::istreambuf_iterator<char>(),
+                    std::istreambuf_iterator<char>(f2.rdbuf()));
+
+  ASSERT_EQ(1,check);
+
+}
+
+TEST(SharedMemoryTests, OpeningOnlySHMSender){
+
+  
+  ASSERT_THROW(SharedMemorySender shms("shmsender.txt"), IPCException);
+
+}
+
+TEST(SharedMemoryTests, OpeningOnlySHMReceiver){
+
+  SharedMemoryReceiver shmr("shmreceiver.txt");  
+  ASSERT_THROW(shmr.shmTransfer(), IPCException);
+
+}
+
+

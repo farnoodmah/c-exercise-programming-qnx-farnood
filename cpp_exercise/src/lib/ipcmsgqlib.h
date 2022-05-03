@@ -21,9 +21,9 @@
 #include <sys/mman.h>
 
 
-#define MSG_QUEUE_NAME "/mymsgqueue"
-class MsgQueueSender{
+const std::string msg_queue_name = "/mymsgqueue";
 
+class MsgQueueSender{
 
     private:
     const std::string _file_name;
@@ -31,40 +31,42 @@ class MsgQueueSender{
     std::vector<unsigned char> _read_file;
     mqd_t _msg_queue;
     struct mq_attr _attrs;
-    long unsigned int _msg_queue_msgsize = 4096;
+    long unsigned int _msg_queue_msgsize = file_data_read_size;
     long unsigned int _msg_queue_maxnummsg = 10;
-    std::string _msg_queue_name = MSG_QUEUE_NAME;
     int _check_empty = -1;
     unsigned int _priority = 1;
-
+    struct   timespec _ts;
+    int counter = 0;
     MsgQueueSender();
-  
+    void  checkingMsgQueueEmpty();
 
     public:
     MsgQueueSender(const std::string & filename);
+    void msgqTransfer();
     ~MsgQueueSender();
 }; 
 
 class MsgQueueReceiver{
-
+    
     private:
-    const std::string _file_name;
-    int ret;
-    std::vector<unsigned char> _read_file;
-    int _receive_size;
-    mqd_t _msg_queue;
-    struct mq_attr _attrs;
-    unsigned int _priority = 1;
-    long unsigned int _msg_queue_msgsize = 4096;
-    long unsigned int _msg_queue_maxnummsg = 10;
-    int _check_empty = 0;
-    std::string _msg_queue_name = MSG_QUEUE_NAME;
-    struct   timespec _ts;
-    MsgQueueReceiver();
+        const std::string _file_name;
+        int ret;
+        std::vector<unsigned char> _read_file;
+        int _receive_size;
+        mqd_t _msg_queue;
+        struct mq_attr _attrs;
+        unsigned int _priority = 1;
+        long unsigned int _msg_queue_msgsize = file_data_read_size;
+        long unsigned int _msg_queue_maxnummsg = 10;
+        int _check_empty = 0;
+        struct   timespec _ts;
+        int counter = 0;
+        MsgQueueReceiver();
     
     public:
-    MsgQueueReceiver(const std::string & filename);
-    ~MsgQueueReceiver();
+        MsgQueueReceiver(const std::string & filename);
+        void msgqTransfer();
+        ~MsgQueueReceiver();
 }; 
 
 
