@@ -21,4 +21,4 @@ cp bazel-bin/src/main/ipcreceiver binary_output
 cp bazel-bin/src/main/ipcsender binary_output
 cp bazel-testlogs/tests/linuxipc_test/test.log test_output
 
-bazel clean
+

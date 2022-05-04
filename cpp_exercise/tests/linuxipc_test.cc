@@ -192,11 +192,11 @@ TEST_F(IPCExceptionTests, CatchingException){
           std::string samplestring = "Pipe Test Data";
           std::vector<unsigned char> samplevec;
           samplevec.insert(samplevec.begin(), samplestring.begin(), samplestring.end());
-    
           pf.createFile();
-          pf.writeFile(samplevec,samplestring.size()+1);
+          pf.writeFile(samplevec,samplevec.size());
           PipeSender pipes("pipesender.txt");
           pipes.pipeTransfer();
+
   }
 
   void  pipeReceiverTest(){
@@ -250,7 +250,7 @@ TEST(PipeTests, OpeningOnlyPipeReceiver){
           samplevec.insert(samplevec.begin(), samplestring.begin(), samplestring.end());
     
           pf.createFile();
-          pf.writeFile(samplevec,samplevec.size()+1);
+          pf.writeFile(samplevec,samplevec.size());
           MsgQueueSender msgqs("msgqsender.txt");
           msgqs.msgqTransfer();
   }
@@ -308,7 +308,7 @@ TEST(MSGQueueTests, OpeningOnlyMSGQReceiver){
           samplevec.insert(samplevec.begin(), samplestring.begin(), samplestring.end());
     
           pf.createFile();
-          pf.writeFile(samplevec,samplevec.size()+1);
+          pf.writeFile(samplevec,samplevec.size());
           SharedMemorySender shms("shmsender.txt");
           shms.shmTransfer();
      }

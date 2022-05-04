@@ -1,9 +1,11 @@
 #include <iostream>
 #include <exception>
+
 class IPCException : public std::exception {
     
         private:
             const char * _msg;
+            
             IPCException();
 
         public:
