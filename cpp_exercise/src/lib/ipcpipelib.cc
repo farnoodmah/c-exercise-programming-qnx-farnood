@@ -42,7 +42,6 @@ PipeSender::PipeSender(const std::string & filename): _file_name(filename){
                 throw IPCException("          IPCSender ERROR: Cannot OPEN ALARM ");
         }
         alarm(0);
-
 }
 
 void PipeSender::pipeTransfer(){
@@ -122,7 +121,6 @@ void PipeReceiver::pipeTransfer(){
                   throw IPCException("IPCReceiver ERROR: Cannot open  the IPCSender.");
                 } 
             }
-     
       alarm(0); 
       FileHandler fd2(_file_name);
       fd2.createFile();
