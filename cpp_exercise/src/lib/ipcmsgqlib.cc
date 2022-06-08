@@ -107,7 +107,7 @@ MsgQueueReceiver::MsgQueueReceiver(const std::string & filename): _file_name(fil
                 mq_getattr(_msg_queue, &_attrs);
 	 	 		_check_empty = _attrs.mq_curmsgs;
             }
-            sleep(5);
+            sleep(3);
 	 	}
 }
 
