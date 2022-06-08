@@ -23,8 +23,7 @@ FileHandler::~FileHandler(){
 void FileHandler::createFile(){
     _fd = open(_file_name.c_str(), O_RDWR| O_CREAT | O_TRUNC, _mode);
     if(_fd<0){
-       std::cout<<strerror(errno);
-       throw IPCException(" FileHandler ERROR: Cannot Open the File Correctly");
+       throw IPCException(" FileHandler ERROR: Cannot Open the File Correctly " + std::string(strerror(errno)));
     }
 }
 /**
@@ -35,18 +34,15 @@ void FileHandler::writeFile(const std::vector<unsigned char> & file_input, size_
     int err;
     _fd = open(_file_name.c_str(), O_WRONLY | O_APPEND, _mode);
     if(_fd<0){
-        std::cout<<strerror(errno);
-        throw IPCException("FileHandler ERROR: Cannot Open the File Correctly");
+        throw IPCException(" FileHandler ERROR: Cannot Open the File Correctly " + std::string(strerror(errno)));
     }
     err = write(_fd, file_input.data(), write_size);
     if(err<0){
-       std::cout<<strerror(errno);
-       throw IPCException("FileHandler ERROR: Cannot Write to the File Correctly");
+       throw IPCException(" FileHandler ERROR: Cannot Write the File Correctly " + std::string(strerror(errno)));
     }
     err = close(_fd);
     if(err<0){
-         std::cout<<strerror(errno);
-         throw IPCException("FileHandler ERROR: Cannot Close the File Correctly");
+         throw IPCException(" FileHandler ERROR: Cannot Close the File Correctly " + std::string(strerror(errno)));
     }
 }
 /**
@@ -56,8 +52,7 @@ void FileHandler::writeFile(const std::vector<unsigned char> & file_input, size_
 void FileHandler::openForReading(){
     _fd = open(_file_name.c_str(), O_RDONLY | O_APPEND| O_LARGEFILE, _mode);
     if(_fd<0){
-        std::cout<<strerror(errno);
-        throw IPCException("FileHandler ERROR: Cannot Open the File Correctly");
+        throw IPCException(" FileHandler ERROR: Cannot  Open the File Correctly " + std::string(strerror(errno)));
     }
 }
 /**
@@ -66,8 +61,7 @@ void FileHandler::openForReading(){
  */
 std::vector<unsigned char> FileHandler::readFile(){
     if(_fd<=0){
-        std::cout<<strerror(errno);
-        throw IPCException("FileHandler ERROR: Cannot Open the File Correctly");
+        throw IPCException(" FileHandler ERROR: Cannot Open the File Correctly " + std::string(strerror(errno)));
     } 
     std::vector<unsigned char> smallbuffer(_buffer_size);
     size_t ph;
@@ -76,9 +70,8 @@ std::vector<unsigned char> FileHandler::readFile(){
         smallbuffer.resize(ph);
         return smallbuffer;
     }
-    else if(ph<0){
-        std::cout<<strerror(errno);
-        throw IPCException("FileHandler ERROR: Cannot Read the File Correctly");
+    else{
+        throw IPCException(" FileHandler ERROR: Cannot  Read the File Correctly " + std::string(strerror(errno)));
     }
 }
 /**
@@ -89,16 +82,10 @@ size_t FileHandler::getSize(){
     struct stat file_stat;
     int err = stat(_file_name.c_str(),&file_stat);
     if(err<0){
-        if(err<0){
-            std::cout<<strerror(errno);
-            throw IPCException("FileHandler ERROR: Cannot give the File size Correctly");
-        }
+        throw IPCException(" FileHandler ERROR: Cannot  give the File size Correctly " + std::string(strerror(errno)));
     }
-    if(file_stat.st_size<0){
-        if(err<0){
-            std::cout<<strerror(errno);
-            throw IPCException("FileHandler ERROR: Cannot give the File size Correctly");
-        }
+    if(file_stat.st_size<0){  
+        throw IPCException(" FileHandler ERROR: Cannot  give the File size Correctly " + std::string(strerror(errno)));        
     }
     _file_size = file_stat.st_size;
     return _file_size;
@@ -110,8 +97,7 @@ size_t FileHandler::getSize(){
 void FileHandler::removeFile(){
     int err = remove(_file_name.c_str());
     if(err<0){
-        std::cout<<strerror(errno);
-        throw IPCException("FileHandler ERROR: Cannot Remove the File Correctly");
+        throw IPCException(" FileHandler ERROR: Cannot  give the File size Correctly " + std::string(strerror(errno)));
     }
 }
 

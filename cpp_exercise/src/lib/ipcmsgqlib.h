@@ -13,12 +13,8 @@
 #include <cstring>
 #include <sys/types.h>
 #include <errno.h>
-#include <signal.h>
-#include <sys/time.h>
-#include <iterator>
 #include <time.h>
-#include <sys/resource.h>
-#include <sys/mman.h>
+
 
 
 const std::string msg_queue_name = "/mymsgqueue";
@@ -31,9 +27,8 @@ class MsgQueueSender{
     std::vector<unsigned char> _read_file;
     mqd_t _msg_queue;
     struct mq_attr _attrs;
-    long unsigned int _msg_queue_msgsize = file_data_read_size;
-    long unsigned int _msg_queue_maxnummsg = 10;
-    int _check_empty = -1;
+    int _msg_queue_msgsize = file_data_read_size;
+    int _msg_queue_maxnummsg = 10;
     unsigned int _priority = 1;
     struct   timespec _ts;
     int counter = 0;
@@ -56,10 +51,10 @@ class MsgQueueReceiver{
         mqd_t _msg_queue;
         struct mq_attr _attrs;
         unsigned int _priority = 1;
-        long unsigned int _msg_queue_msgsize = file_data_read_size;
-        long unsigned int _msg_queue_maxnummsg = 10;
+        int _msg_queue_msgsize = file_data_read_size;
+        int _msg_queue_maxnummsg = 10;
         int _check_empty = 0;
-        struct   timespec _ts;
+        struct  timespec _ts;
         int counter = 0;
         MsgQueueReceiver();
     

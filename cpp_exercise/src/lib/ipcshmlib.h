@@ -10,12 +10,9 @@
 #include <fcntl.h>
 #include <cstring>
 #include <sys/types.h>
-#include <vector>
-#include <getopt.h>
 #include <semaphore.h>
 #include <sys/mman.h>
 #include <sys/ipc.h>
-#include <algorithm>
 
 /**
  * SharedMemorySender

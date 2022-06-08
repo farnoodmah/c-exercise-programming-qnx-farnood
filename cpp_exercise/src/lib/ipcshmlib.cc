@@ -31,13 +31,11 @@ SharedMemorySender::SharedMemorySender(const std::string filename): _file_name(f
     }
     _err = ftruncate(_shm_fd, _shm_size);
     if(_err<0){    
-        std::cout<<strerror(errno);
-        throw IPCException("  IPCSender ERROR: Cannot truncate the Shared Memory.");  
+        throw IPCException(" IPCSender ERROR: Cannot truncate the Shared Memory. " + std::string(strerror(errno)));
     }
     _ptr = reinterpret_cast<struct _shm_data_struct *>(mmap(0, _shm_size, PROT_WRITE, MAP_SHARED, _shm_fd, 0));
-    if(_ptr == (struct _shm_data_struct *)-1){
-        std::cout<<strerror(errno);
-        throw IPCException("  IPCSender ERROR: Cannot map the Shared Memory. "); 
+    if(_ptr == reinterpret_cast<struct _shm_data_struct *>(-1)){
+        throw IPCException(" IPCSender ERROR: Cannot map the Shared Memory. " + std::string(strerror(errno)));
     }
 }
 
@@ -54,8 +52,7 @@ void SharedMemorySender::shmTransfer(){
         tempstruct.datasize = buffer.size();
         std::copy(buffer.begin(), buffer.end(),tempstruct.data);
         if (clock_gettime(CLOCK_REALTIME, &_ts) == -1){
-                std::cout<<strerror(errno);
-                throw IPCException("  IPCSender ERROR: Cannot get the CLOCK TIME. "); 
+                throw IPCException(" IPCSender ERROR: Cannot get the CLOCK TIME. " + std::string(strerror(errno)));
         }
         _ts.tv_sec += 15;
         int s =  sem_timedwait(_sem_receiver,&_ts);
@@ -65,14 +62,13 @@ void SharedMemorySender::shmTransfer(){
         }
         }
         if(_err<0){
-            std::cout<<strerror(errno);
-            throw IPCException("  IPCSender ERROR: Semaphore receiver. "); 
+                throw IPCException(" IPCSender ERROR: Cannot get the Semaphore. " + std::string(strerror(errno)));
+
         }   
         memcpy(_ptr,&tempstruct, sizeof(tempstruct));
         _err =  sem_post(_sem_sender);
         if(_err<0){
-            std::cout<<strerror(errno);
-            throw IPCException("   IPCSender ERROR: Semaphore sender.  "); 
+                throw IPCException(" IPCSender ERROR: Semaphore Sender " + std::string(strerror(errno)));
         } 
         if(buffer.size()==0){ 
             break;
@@ -105,24 +101,20 @@ SharedMemoryReceiver::SharedMemoryReceiver(const std::string filename): _file_na
     shm_unlink(shm_name.c_str());
     _sem_sender = sem_open(semaphoresender_name.c_str(),O_CREAT ,0660,0);
     if(_sem_sender == SEM_FAILED){
-        std::cout<<strerror(errno);
-        throw IPCException("   IPCReceiver ERROR:Cannot Open Semaphore Sender.   "); 
+        throw IPCException(" IPCReceiver ERROR:Cannot Open Semaphore Sender. " + std::string(strerror(errno)));
     } 
     _sem_receiver = sem_open(semaphorereceiver_name.c_str(),O_CREAT , 0660,1);
     if(_sem_receiver == SEM_FAILED){
-        std::cout<<strerror(errno);
-        throw IPCException("   IPCReceiver ERROR:Cannot Open Semaphore Receiver.    "); 
+        throw IPCException(" IPCReceiver ERROR:Cannot Open Semaphore Receiver. " + std::string(strerror(errno)));
     }
     std::cout<<"          Waiting for the Sender..."<<std::endl;
     _shm_fd = shm_open(shm_name.c_str(), O_CREAT | O_RDONLY, 0666);
     if(_shm_fd < 0){
-        std::cout<<strerror(errno);
-        throw IPCException("    IPCReceiver ERROR:Cannot Open Shared Memory.     "); 
+        throw IPCException(" IPCReceiver ERROR:Cannot Open Shared Memory.  " + std::string(strerror(errno)));
     }
     _ptr = reinterpret_cast<struct _shm_data_struct *>(mmap(0, _shm_size, PROT_READ, MAP_SHARED, _shm_fd, 0));  
     if(_ptr == (struct _shm_data_struct *)-1){
-        std::cout<<strerror(errno);
-        throw IPCException("    IPCReceiver ERROR: Cannot map the Shared Memory.     "); 
+        throw IPCException(" IPCReceiver ERROR:Cannot map the  Shared Memory.  " + std::string(strerror(errno)));
     }
 }
 
@@ -132,16 +124,14 @@ void SharedMemoryReceiver::shmTransfer(){
     std::cout<<"          Starting to read the data: "<<std::endl; 
     while(true){               
         if (clock_gettime(CLOCK_REALTIME, &_ts) == -1){
-            std::cout<<strerror(errno);
-            throw IPCException("   IPCReceiver ERROR: Cannot get the CLOCK TIME.   "); 
+            throw IPCException(" IPCReceiver ERROR: Cannot get the CLOCK TIME.  " + std::string(strerror(errno)));
         }
     
         _ts.tv_sec += 15;
         int s =  sem_timedwait(_sem_sender,&_ts);
         if (s == -1){
             if (errno == ETIMEDOUT){
-                std::cout<<strerror(errno);
-                throw IPCException("   IPCReceiver ERROR: Cannot connect to IPCSender.   "); 
+                throw IPCException(" IPCReceiver ERROR: Cannot connect to IPCSender.  " + std::string(strerror(errno)));
             }
         }
         _shm_data_struct tempstruct = *_ptr;

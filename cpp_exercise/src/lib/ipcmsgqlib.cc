@@ -17,8 +17,7 @@ MsgQueueSender::MsgQueueSender(const std::string & filename): _file_name(filenam
         //opening the msg queue
         _msg_queue = mq_open(msg_queue_name.c_str(), O_WRONLY | O_CREAT , S_IRWXU | S_IRWXG, &_attrs);
         if(_msg_queue<0){
-           std::cout<<strerror(errno);
-           throw IPCException(" IPCSender ERROR: Cannot open the MSGQueue.");
+           throw IPCException(" IPCSender ERROR: Cannot open the MSGQueue. " + std::string(strerror(errno)));
         }
 }
 
@@ -46,8 +45,7 @@ void MsgQueueSender::msgqTransfer(){
                 if (errno == ETIMEDOUT){
                     throw IPCException("IPCSender ERROR: Cannot Connect to the Receiver ");
                 }
-                std::cout<<strerror(errno);
-                throw IPCException(" IPCSender ERROR: MsgQueueSend Error ");
+                throw IPCException(" IPCSender ERROR: Cannot open the MSGQueue. " + std::string(strerror(errno)));
             }
             //End of the file
             if(buffer.size()==0){
@@ -63,18 +61,19 @@ void MsgQueueSender::msgqTransfer(){
 }
 
 void MsgQueueSender::checkingMsgQueueEmpty(){
-        while(_check_empty!=0){
+        int check_empty = -1;
+        while(check_empty!=0){
             ++counter;
             if(counter > 5){
-                throw IPCException("IPCSender ERROR: IPCReceiver did not receive the file successfully");
+                throw IPCException("    IPCSender ERROR: IPCReceiver did not receive the file successfully");
             }
-                std::cout<<"          Checking the IPCReceiver received the file completely... Try:"<<counter<<"/5"<<std::endl;
-                mq_getattr(_msg_queue, &_attrs);
-	 	 		_check_empty = _attrs.mq_curmsgs;
-                if(_check_empty == 0){
-                    break;
-                }
-                sleep(5);
+            std::cout<<"          Checking the IPCReceiver received the file completely... Try:"<<counter<<"/5"<<std::endl;
+            mq_getattr(_msg_queue, &_attrs);
+	 	 	check_empty = _attrs.mq_curmsgs;
+            if(check_empty == 0){
+                break;
+            }
+            sleep(5);
         }
 }
 
@@ -100,7 +99,7 @@ MsgQueueReceiver::MsgQueueReceiver(const std::string & filename): _file_name(fil
 	 	{   
             ++counter;
             if(counter > 5){
-                throw IPCException("IPCSender ERROR: Cannot connect to the IPCSender");
+                throw IPCException("    IPCSender ERROR: Cannot connect to the IPCSender");
             }
             std::cout<<"          Waiting for the Sender...Try:"<<counter<<"/5"<<std::endl;     
             _msg_queue = mq_open(msg_queue_name.c_str(), O_RDONLY , &_attrs); 
@@ -126,12 +125,11 @@ void MsgQueueReceiver::msgqTransfer(){
             _receive_size = mq_timedreceive(_msg_queue,(char*)buffer.data(),_msg_queue_msgsize,&_priority,&_ts);
             if(_receive_size<=0){
                 if (errno == ETIMEDOUT){
-                    std::cout<<strerror(errno);
-                    throw IPCException("  IPCReceiver ERROR: Cannot Connect to the Sender  ");
+                    throw IPCException(" IPCReceiver ERROR: Cannot Connect to the Sender " + std::string(strerror(errno)));
                 }
                 break;
             }
-            else if(_receive_size>0){
+            else{
             buffer.resize(_receive_size);
             fd.writeFile(buffer,buffer.size()); 
             }

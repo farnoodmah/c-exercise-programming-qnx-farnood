@@ -29,17 +29,17 @@ PipeSender::PipeSender(const std::string & filename): _file_name(filename){
             }
             std::cout<<"          Waiting for The Receiver... Try:"<<_counter<<"/5"<<std::endl;
             //checking the existence of fifo
-            errf = access( _myfifo, F_OK ) ;
+            errf = access( pipe_fifo_name.c_str(), F_OK ) ;
             sleep(5);
         }
         struct sigaction act;
         memset(&act, 0, sizeof act);
         sigaction(SIGALRM, &act, NULL);
         alarm(5);
-        _check_fifo = open(_myfifo, O_WRONLY);
+        _check_fifo = open(pipe_fifo_name.c_str(), O_WRONLY);
         signal(SIGALRM, alaramHandler);
         if(_check_fifo<0){
-                throw IPCException("          IPCSender ERROR: Cannot OPEN ALARM ");
+                throw IPCException(" IPCSender ERROR: Cannot open the pipe. " + std::string(strerror(errno)));
         }
         alarm(0);
 
@@ -82,7 +82,7 @@ void PipeSender::pipeTransfer(){
 
 PipeSender::~PipeSender(){
         close(_check_fifo);
-        remove(_myfifo);
+        remove(pipe_fifo_name.c_str());
 }
 
 /**
@@ -97,12 +97,11 @@ PipeReceiver::PipeReceiver(const std::string & filename): _file_name(filename){
         std::cout<<"**************************************************************"<<std::endl;
         std::cout<<"**************************************************************"<<std::endl;
         std::cout<<"          File Name: "<<_file_name<<std::endl;
-        remove(_myfifo);
+        remove(pipe_fifo_name.c_str());
         //making the FIFO pipe
-        int ret = mkfifo(_myfifo, 0666);
-        if (ret<0){  
-            std::cout<<strerror(errno);
-            throw IPCException(" IPCReceiver ERROR: Cannot make the Pipe.");
+        int ret = mkfifo(pipe_fifo_name.c_str(), 0666);
+        if (ret<0){
+            throw IPCException(" IPCReceiver ERROR: Cannot make the pipe. " + std::string(strerror(errno)));
         } 
 }
 
@@ -113,7 +112,7 @@ void PipeReceiver::pipeTransfer(){
       sigemptyset(&sa.sa_mask);
       sigaction(SIGALRM,&sa,0);
       alarm(10);
-      if (0>(_fifo=open(_myfifo,O_RDONLY)))
+      if (0>(_fifo=open(pipe_fifo_name.c_str(),O_RDONLY)))
             if(errno==EINTR){
                 if(abort_eh){
                   throw IPCException("IPCReceiver ERROR: Cannot connect to the IPCSender.");
@@ -135,8 +134,7 @@ void PipeReceiver::pipeTransfer(){
              break;
           }
           else if(bytesread<0){ 
-             std::cout<<strerror(errno);
-             throw IPCException(" IPCReceiver ERROR: Cannot read the file"); 
+            throw IPCException(" IPCReceiver ERROR: Cannot read the pipe. " + std::string(strerror(errno)));
           }
           smallbuffer.resize(bytesread);
           fd2.writeFile(smallbuffer,smallbuffer.size());
@@ -151,5 +149,5 @@ void PipeReceiver::pipeTransfer(){
 
 PipeReceiver::~PipeReceiver(){ 
       close(_fifo);
-      remove(_myfifo);
+      remove(pipe_fifo_name.c_str());
 }

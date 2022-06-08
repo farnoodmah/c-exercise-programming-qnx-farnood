@@ -10,11 +10,11 @@
  * **/
 
 
-ipcprt::Protocol IPC::protocolOptions(const std::string & input){
-    if (input == "pipe") return ipcprt::Protocol::pipe;
-    if (input == "msgqueue") return ipcprt::Protocol::msgqueue;
-    if (input == "shm") return ipcprt::Protocol::shm;
-    return ipcprt::Protocol::invalid;
+Protocol IPC::protocolOptions(const std::string & input){
+    if (input == "pipe") return Protocol::Pipe;
+    if (input == "msgqueue") return Protocol::MsgQueue;
+    if (input == "shm") return Protocol::SHM;
+    return Protocol::Invalid;
 }
 
 /**
@@ -70,13 +70,13 @@ void IPCSender::ipcshm(const std::string & filename){
 
 IPCSender::IPCSender(const std::string & filename, const std::string  & protocol) : _file_name(filename), _protocol(protocol){
     switch (protocolOptions(_protocol)){
-      case ipcprt::Protocol::pipe:
+      case Protocol::Pipe:
         ipcpipe(_file_name);
         break;
-      case ipcprt::Protocol::msgqueue:
+      case Protocol::MsgQueue:
         ipcmsgqueue(_file_name);
         break;
-      case ipcprt::Protocol::shm:
+      case Protocol::SHM:
         ipcshm(_file_name);
         break; 
       default:
@@ -127,13 +127,13 @@ void IPCReceiver::ipcshm(const std::string & filename){
 
 IPCReceiver::IPCReceiver(const std::string & filename, const std::string  & protocol): _file_name(filename), _protocol(protocol){
     switch (protocolOptions(_protocol)){
-        case ipcprt::Protocol::pipe:
+        case Protocol::Pipe:
              ipcpipe(_file_name);
              break;
-        case ipcprt::Protocol::msgqueue:
+        case Protocol::MsgQueue:
             ipcmsgqueue(_file_name);
             break;
-        case ipcprt::Protocol::shm: 
+        case Protocol::SHM: 
             ipcshm(_file_name);
             break;
         default:
@@ -191,7 +191,7 @@ CommandOption::CommandOption(const std::string & program, int argc, char *argv[]
                 if ((_filename.size() < 1) || (_filename.size() >40)){
                   throw IPCException("unrecognized command. the file name should be between 1 and 30 letters");
                 }
-                 break;
+                break;
               case ':':
                 throw IPCException("unrecognized command. please use \"--help\" for guide.\n");
               case '?':
@@ -231,7 +231,7 @@ void  CommandOption::printHelp(){
 					   _program << " is used to "<< ((_program == _ipcreceiver) ? "receive" : "send") << " files between a client "<< "(" + _ipcsender + ")" << " and server " << "(" + _ipcreceiver + ")" <<  " via different IPC methods (queue, pipe, and shm).\n" <<
 						"Primary commands:\n\n" <<
             "--pipe        For "<<((_program == _ipcreceiver) ? "receiving" : "sending") <<"  files with the pipe option.\n" <<
-						"--queue       For "<<((_program == _ipcreceiver) ? "receiving" : "sending") <<" files with the message queue option.\n" <<
+						"--msgqueue       For "<<((_program == _ipcreceiver) ? "receiving" : "sending") <<" files with the message queue option.\n" <<
 						"--shm         For "<<((_program == _ipcreceiver) ? "receiving" : "sending") <<"  files by using a shared memory buffer.\n\n" <<
 						"--help        lists available commands and guides.\n\n";
  } 

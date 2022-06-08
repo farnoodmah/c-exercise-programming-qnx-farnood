@@ -77,7 +77,7 @@ TEST_F(FileHandlerTests, ReadingAndWritingTheCorrectData){
       txtFile.removeFile();
         
         
-      ASSERT_THROW( txtFile.openForReading();, IPCException);
+      ASSERT_THROW( txtFile.openForReading(), IPCException);
        
   }
 

@@ -1,14 +1,7 @@
 #include <iostream>
 #include <exception>
 
-class IPCException : public std::exception {
-    
-        private:
-            const char * _msg;
-            
-            IPCException();
-
+class IPCException : public std::runtime_error{
         public:
-            IPCException(const char * s) noexcept(true) : _msg(s) {}
-            const char * what() const noexcept(true) {return _msg;}
+               using std::runtime_error::runtime_error;
 };
