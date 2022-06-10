@@ -29,6 +29,9 @@ SharedMemorySender::SharedMemorySender(const std::string filename): _file_name(f
         _sem_receiver = sem_open(semaphorereceiver_name.c_str(),0);
         sleep(3);
     }
+}
+
+void SharedMemorySender::shmTransfer(){
     _err = ftruncate(_shm_fd, _shm_size);
     if(_err<0){    
         throw IPCException(" IPCSender ERROR: Cannot truncate the Shared Memory. " + std::string(strerror(errno)));
@@ -37,9 +40,6 @@ SharedMemorySender::SharedMemorySender(const std::string filename): _file_name(f
     if(_ptr == reinterpret_cast<struct _shm_data_struct *>(-1)){
         throw IPCException(" IPCSender ERROR: Cannot map the Shared Memory. " + std::string(strerror(errno)));
     }
-}
-
-void SharedMemorySender::shmTransfer(){
     FileHandler fd(_file_name);
     fd.openForReading();
     std::cout<<"          File Name: "<<_file_name<<std::endl;
@@ -51,20 +51,17 @@ void SharedMemorySender::shmTransfer(){
         _shm_data_struct tempstruct;
         tempstruct.datasize = buffer.size();
         std::copy(buffer.begin(), buffer.end(),tempstruct.data);
-        if (clock_gettime(CLOCK_REALTIME, &_ts) == -1){
+        _err = clock_gettime(CLOCK_REALTIME, &_ts);
+        if ( _err  == -1){
                 throw IPCException(" IPCSender ERROR: Cannot get the CLOCK TIME. " + std::string(strerror(errno)));
         }
         _ts.tv_sec += 15;
-        int s =  sem_timedwait(_sem_receiver,&_ts);
-        if(s <-1){
+        _err =  sem_timedwait(_sem_receiver,&_ts);
+        if(_err == -1){
             if(errno == ETIMEDOUT){
-                throw IPCException("IPCReceiver ERROR: Cannot Connect to the IPCReceiver.");
+                throw IPCException("IPCReceiver ERROR: Cannot Connect to the IPCReceiver." + std::string(strerror(errno)));
+            }
         }
-        }
-        if(_err<0){
-                throw IPCException(" IPCSender ERROR: Cannot get the Semaphore. " + std::string(strerror(errno)));
-
-        }   
         memcpy(_ptr,&tempstruct, sizeof(tempstruct));
         _err =  sem_post(_sem_sender);
         if(_err<0){
@@ -99,6 +96,9 @@ SharedMemoryReceiver::SharedMemoryReceiver(const std::string filename): _file_na
     sem_unlink(semaphoresender_name.c_str());
     sem_unlink(semaphorereceiver_name.c_str());
     shm_unlink(shm_name.c_str());
+}
+
+void SharedMemoryReceiver::shmTransfer(){
     _sem_sender = sem_open(semaphoresender_name.c_str(),O_CREAT ,0660,0);
     if(_sem_sender == SEM_FAILED){
         throw IPCException(" IPCReceiver ERROR:Cannot Open Semaphore Sender. " + std::string(strerror(errno)));
@@ -116,20 +116,18 @@ SharedMemoryReceiver::SharedMemoryReceiver(const std::string filename): _file_na
     if(_ptr == (struct _shm_data_struct *)-1){
         throw IPCException(" IPCReceiver ERROR:Cannot map the  Shared Memory.  " + std::string(strerror(errno)));
     }
-}
-
-void SharedMemoryReceiver::shmTransfer(){
     FileHandler fr(_file_name);
     fr.createFile();
     std::cout<<"          Starting to read the data: "<<std::endl; 
-    while(true){               
-        if (clock_gettime(CLOCK_REALTIME, &_ts) == -1){
+    while(true){        
+        _err =  clock_gettime(CLOCK_REALTIME, &_ts);         
+        if ( _err == -1){
             throw IPCException(" IPCReceiver ERROR: Cannot get the CLOCK TIME.  " + std::string(strerror(errno)));
         }
     
         _ts.tv_sec += 15;
-        int s =  sem_timedwait(_sem_sender,&_ts);
-        if (s == -1){
+        _err =  sem_timedwait(_sem_sender,&_ts);
+        if (_err == -1){
             if (errno == ETIMEDOUT){
                 throw IPCException(" IPCReceiver ERROR: Cannot connect to IPCSender.  " + std::string(strerror(errno)));
             }
@@ -138,7 +136,7 @@ void SharedMemoryReceiver::shmTransfer(){
         if(tempstruct.datasize == 0){
             break;
         }    
-        sem_post(_sem_receiver);
+        _err = sem_post(_sem_receiver);
         std::vector<unsigned char> tempvec(_buffer_size);    
         tempvec.insert(tempvec.begin(),std::begin(tempstruct.data),std::end(tempstruct.data));
         tempvec.resize(tempstruct.datasize);
@@ -154,8 +152,8 @@ void SharedMemoryReceiver::shmTransfer(){
 SharedMemoryReceiver::~SharedMemoryReceiver(){
     sem_close(_sem_sender);
     sem_close(_sem_receiver);
+    munmap(_ptr,_shm_size); 
     sem_unlink(semaphoresender_name.c_str());
     sem_unlink(semaphorereceiver_name.c_str());
-    munmap(_ptr,_shm_size); 
     shm_unlink(shm_name.c_str());
 }

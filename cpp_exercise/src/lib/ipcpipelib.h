@@ -16,7 +16,6 @@ const std::string pipe_fifo_name = "/tmp/myfifo";
 
 
 class PipeSender{
-
     private:
         const std::string _file_name; 
         size_t _file_size;
@@ -40,6 +39,7 @@ class PipeReceiver{
         long unsigned int _buffer_size = file_data_read_size;
         int _fifo = -1;
         int bytesread = 1;
+        int ret = 0;
         PipeReceiver();
 
     public:

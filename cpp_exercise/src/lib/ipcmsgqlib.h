@@ -27,7 +27,7 @@ class MsgQueueSender{
     std::vector<unsigned char> _read_file;
     mqd_t _msg_queue;
     struct mq_attr _attrs;
-    int _msg_queue_msgsize = file_data_read_size;
+    size_t _msg_queue_msgsize = file_data_read_size;
     int _msg_queue_maxnummsg = 10;
     unsigned int _priority = 1;
     struct   timespec _ts;

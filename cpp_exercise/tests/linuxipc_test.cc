@@ -287,14 +287,12 @@ TEST(MSGQueueTests, OpeningOnlyMSGQSender){
    ASSERT_THROW(msgqs.msgqTransfer(), IPCException);
 
 }
-
 TEST(MSGQueueTests, OpeningOnlyMSGQReceiver){
 
   
    ASSERT_THROW(MsgQueueReceiver msgr("msgqreceiver.txt"), IPCException);
 
 }
-
 /**
  * SharedMemorySender & SharedMemoryReceiver
  * 
