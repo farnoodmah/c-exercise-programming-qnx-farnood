@@ -10,12 +10,9 @@
 #include <fcntl.h>
 #include <cstring>
 #include <sys/types.h>
-#include <vector>
-#include <getopt.h>
 #include <semaphore.h>
 #include <sys/mman.h>
 #include <sys/ipc.h>
-#include <algorithm>
 
 /**
  * SharedMemorySender
@@ -62,6 +59,7 @@ class SharedMemoryReceiver {
         sem_t *_sem_sender;
         struct timespec _ts;
         const size_t _buffer_size = file_data_chunk;
+        int _err;
         SharedMemoryReceiver();
 
     public:

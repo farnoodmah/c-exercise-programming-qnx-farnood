@@ -25,7 +25,7 @@ class FileHandler{
 
     private:
         const std::string _file_name; //input file name
-        int _fd;  //file desriptor
+        int _fd;  //file descriptor
         std::string _file_input; // the data that should be written into the file
         size_t _write_size; // the size of data that should be written
         size_t _read_size; // the size of data that should be read

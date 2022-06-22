@@ -5,27 +5,18 @@
 #include <string>
 #include <vector>
 #include <iostream>
-#include <map>
 #include <unistd.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <cstring>
 #include <sys/types.h>
-#include <vector>
 #include <getopt.h>
 #include "ipcpipelib.h"
 #include "ipcmsgqlib.h"
 #include "ipcshmlib.h"
 
 
-namespace ipcprt {
-    enum Protocol {
-        invalid,
-        pipe,
-        shm,
-        msgqueue
-    };
-}
+enum class Protocol{Invalid, Pipe, SHM, MsgQueue};
 /**
  *      IPC Class
  */
@@ -38,7 +29,7 @@ class IPC{
         virtual void ipcpipe(const std::string & filename)=0;
         virtual void ipcmsgqueue(const std::string & filename)=0;
         virtual void ipcshm(const std::string & filename)=0;
-        ipcprt::Protocol protocolOptions(const std::string & input);
+        Protocol protocolOptions(const std::string & input);
 };
 class IPCSender: public IPC{
     private:
@@ -81,7 +72,7 @@ class CommandOption{
     std::string _filename;
     int _longindex = 0;
     int _argc;
-     int _option;
+    int _option;
     std::vector<std::string> _options;
     std::string _help_message;
     std::string _output;
